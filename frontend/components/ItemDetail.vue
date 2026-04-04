@@ -285,7 +285,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   edit: [item: Item]
-  delete: [id: number]
+  delete: [id: number | string]
 }>()
 
 const { settings } = useSettings()
@@ -302,14 +302,14 @@ const isOpen = computed({
 
 const fullItem = ref<ItemWithInfoItems | null>(null)
 const showAddForm = ref(false)
-const editingItemId = ref<number | null>(null)
+const editingItemId = ref<number | string | null>(null)
 const newItem = ref({ tag: '', content: '' })
 const addLoading = ref(false)
 
 const showAddCommentForm = ref(false)
 const newComment = ref('')
 const commentLoading = ref(false)
-const editingEventId = ref<number | null>(null)
+const editingEventId = ref<number | string | null>(null)
 const editEventDate = ref('')
 const editEventContent = ref('')
 
@@ -394,7 +394,7 @@ const handleAddItem = async () => {
   }
 }
 
-const handleDeleteItem = async (itemId: number) => {
+const handleDeleteItem = async (itemId: number | string) => {
   if (!fullItem.value || !confirm('Delete this item?')) return
   await deleteInfoItem(fullItem.value.id, itemId)
   fullItem.value.info_items = fullItem.value.info_items.filter(i => i.id !== itemId)

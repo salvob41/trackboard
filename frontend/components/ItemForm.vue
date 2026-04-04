@@ -94,10 +94,14 @@ const stageOptions = computed(() => props.stages.map(stage => ({
   value: stage.key
 })))
 
+// Use first available stage as default rather than hardcoding 'wishlist',
+// since workspaces with different templates may have no 'wishlist' stage.
+const defaultStage = computed(() => props.stages[0]?.key || '')
+
 const formData = ref<ItemCreate>({
   name: '',
   secondaryField: '',
-  stage: 'wishlist',
+  stage: '',
   notes: ''
 })
 
@@ -113,9 +117,15 @@ watch(() => props.item, (item) => {
     formData.value = {
       name: '',
       secondaryField: '',
-      stage: 'wishlist',
+      stage: defaultStage.value,
       notes: ''
     }
+  }
+}, { immediate: true })
+
+watch(defaultStage, (val) => {
+  if (!props.item && !formData.value.stage) {
+    formData.value.stage = val
   }
 }, { immediate: true })
 

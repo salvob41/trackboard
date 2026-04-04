@@ -62,15 +62,21 @@ async function handleFileSelect(event: Event) {
     const text = await file.text()
     const parsed = JSON.parse(text)
 
-    // Accept both v1 and v2 formats
-    if (!('items' in parsed) || !('stages' in parsed)) {
+    // Map v1 format (applications) to v2 (items)
+    if ('applications' in parsed && !('items' in parsed)) {
+      parsed.items = parsed.applications
+      delete parsed.applications
+    }
+
+    // Validate required arrays
+    if (!Array.isArray(parsed.items) || !Array.isArray(parsed.stages)) {
       toast.add({ title: 'Invalid file format', color: 'red', icon: 'i-heroicons-x-circle' })
       return
     }
 
-    if (!Array.isArray(parsed.items) || !Array.isArray(parsed.stages)) {
-      toast.add({ title: 'Invalid file format', color: 'red', icon: 'i-heroicons-x-circle' })
-      return
+    // Normalize optional fields
+    if (!Array.isArray(parsed.infoItems)) {
+      parsed.infoItems = []
     }
 
     // Import as new workspace

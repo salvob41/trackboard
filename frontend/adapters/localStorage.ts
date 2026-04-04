@@ -185,9 +185,11 @@ function migrateToWorkspaces(): void {
   localStorage.removeItem('app-tracker:first-visit-acknowledged')
 }
 
-// Run migration and apply defaults at module load
-migrateToWorkspaces()
-applyDefaultWorkspace()
+// Run migration and apply defaults at module load (skip during SSR)
+if (typeof window !== 'undefined') {
+  migrateToWorkspaces()
+  applyDefaultWorkspace()
+}
 
 // --- Seed stages for active workspace if empty ---
 

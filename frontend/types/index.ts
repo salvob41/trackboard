@@ -1,6 +1,7 @@
 export interface Item {
     id: number | string
     name: string
+    secondaryField?: string
     stage: string
     notes?: string
     created_at: string
@@ -36,6 +37,8 @@ export interface Stage {
 export interface Settings {
     itemLabel: string
     primaryFieldLabel: string
+    secondaryFieldLabel: string
+    showSecondaryOnCard: boolean
 }
 
 export type ItemCreate = Omit<Item, 'id' | 'created_at' | 'updated_at' | 'last_event_preview'>

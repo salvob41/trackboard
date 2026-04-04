@@ -348,12 +348,13 @@ export const storage = {
   // Settings
   getSettings(): Settings {
     const k = K()
-    const settings = readItem<Settings>(k.settings)
-    if (settings) return settings
     const registry = getRegistry()!
     const ws = registry.workspaces.find(w => w.id === registry.activeWorkspaceId)
     const template = WORKSPACE_TEMPLATES.find(t => t.id === ws?.templateId) || WORKSPACE_TEMPLATES[0]
-    return template.settings
+    const stored = readItem<Settings>(k.settings)
+    // Merge template defaults with stored values so existing workspaces get new fields
+    // (e.g. secondaryFieldLabel added after workspace was created)
+    return { ...template.settings, ...stored }
   },
 
   saveSettings(settings: Settings): void {

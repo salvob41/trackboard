@@ -10,7 +10,9 @@
           <div class="flex items-center gap-3">
             <UIcon name="i-heroicons-briefcase" class="text-3xl text-primary" />
             <h1 class="text-2xl font-bold">{{ appTitle }}</h1>
-            <WorkspaceSelector class="ml-2" @create="showCreateWorkspace = true" />
+            <UBadge v-if="activeWorkspace" color="gray" variant="subtle" size="sm" class="ml-1">
+              {{ activeWorkspace.name }}
+            </UBadge>
           </div>
           <div class="flex items-center gap-3">
             <UButton 
@@ -103,10 +105,6 @@
       v-model="showSettings"
     />
 
-    <WorkspaceCreateModal
-      v-model="showCreateWorkspace"
-    />
-
     <ConfirmDeleteModal
       v-model="showDeleteModal"
       :item-name="itemToDelete?.name || ''"
@@ -169,7 +167,6 @@ const items = ref<Item[]>([])
 const pending = ref(true)
 const error = ref<Error | null>(null)
 const showSettings = ref(false)
-const showCreateWorkspace = ref(false)
 const showModal = ref(false)
 const selectedItem = ref<Item | undefined>()
 const showDetailModal = ref(false)

@@ -84,6 +84,16 @@ export function getActiveWorkspaceId(): string {
   return registry.activeWorkspaceId
 }
 
+function applyDefaultWorkspace(): void {
+  const registry = getRegistry()
+  if (!registry) return
+  const defaultId = localStorage.getItem('app-tracker:default-workspace')
+  if (defaultId && registry.workspaces.find(w => w.id === defaultId)) {
+    registry.activeWorkspaceId = defaultId
+    saveRegistry(registry)
+  }
+}
+
 // --- Migrations ---
 
 function migrateFromV0(): void {
@@ -175,8 +185,9 @@ function migrateToWorkspaces(): void {
   localStorage.removeItem('app-tracker:first-visit-acknowledged')
 }
 
-// Run migration at module load
+// Run migration and apply defaults at module load
 migrateToWorkspaces()
+applyDefaultWorkspace()
 
 // --- Seed stages for active workspace if empty ---
 

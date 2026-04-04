@@ -10,9 +10,7 @@
           <div class="flex items-center gap-3">
             <UIcon name="i-heroicons-briefcase" class="text-3xl text-primary" />
             <h1 class="text-2xl font-bold">{{ appTitle }}</h1>
-            <UBadge v-if="activeWorkspace" color="gray" variant="subtle" size="sm" class="ml-1">
-              {{ activeWorkspace.name }}
-            </UBadge>
+            <WorkspaceSelector class="ml-2" />
           </div>
           <div class="flex items-center gap-3">
             <UButton 

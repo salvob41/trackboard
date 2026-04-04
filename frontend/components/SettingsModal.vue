@@ -163,7 +163,6 @@ const handleRename = () => {
 }
 
 const handleSwitch = (id: string) => {
-  isOpen.value = false
   switchWorkspace(id)
 }
 

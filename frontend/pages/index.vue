@@ -1,7 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
-    <!-- Backup Reminder Banner (local storage mode only) -->
-    <ClientOnly v-if="isLocalStorageMode">
+    <ClientOnly>
       <BackupReminder @export="handleQuickExport" />
     </ClientOnly>
 
@@ -20,8 +19,7 @@
             >
               New {{ itemLabel }}
             </UButton>
-            <!-- Backup button (local storage mode only) -->
-            <UTooltip v-if="isLocalStorageMode" text="Download Backup">
+            <UTooltip text="Download Backup">
               <UButton
                 icon="i-heroicons-arrow-down-tray"
                 color="gray"
@@ -118,8 +116,7 @@
       @skip="handleCommentSkip"
     />
 
-    <!-- First Visit Notice (local storage mode only) -->
-    <ClientOnly v-if="isLocalStorageMode">
+    <ClientOnly>
       <FirstVisitNotice />
     </ClientOnly>
 
@@ -144,9 +141,6 @@
 
 <script setup lang="ts">
 import type { Item, ItemCreate } from '~/types'
-
-const config = useRuntimeConfig()
-const isLocalStorageMode = config.public.storageMode === 'local'
 
 const colorMode = useColorMode()
 const isDark = computed(() => colorMode.value === 'dark')
@@ -239,7 +233,7 @@ const handleSubmit = async (data: ItemCreate) => {
     showModal.value = false
     await loadItems(false)
     
-    if (isLocalStorageMode) recordChange()
+    recordChange()
   } catch (e) {
     console.error('Failed to save item:', e)
     await loadItems()
@@ -270,7 +264,7 @@ const handleUpdateStage = async (id: number | string, toStage: string, fromStage
     }
     showCommentModal.value = true
     
-    if (isLocalStorageMode) recordChange()
+    recordChange()
   } catch (e) {
     blockDetailForItemId.value = null
     console.error('Failed to update stage:', e)
@@ -323,7 +317,7 @@ const handleConfirmDelete = async () => {
     await deleteItem(id)
     showDeleteModal.value = false
     
-    if (isLocalStorageMode) recordChange()
+    recordChange()
   } catch (e) {
     console.error('Failed to delete item:', e)
     await loadItems()

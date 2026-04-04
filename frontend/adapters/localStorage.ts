@@ -1,5 +1,4 @@
 // frontend/adapters/localStorage.ts
-import type { StorageAdapter } from '~/types/storage'
 import type {
   Item,
   ItemWithInfoItems,
@@ -115,7 +114,7 @@ function seedStagesIfEmpty(): Stage[] {
 
 runMigrations()
 
-export const localStorageAdapter: StorageAdapter = {
+export const storage = {
   // Items
   async getItems(): Promise<Item[]> {
     const items = read<Item>(KEYS.items)

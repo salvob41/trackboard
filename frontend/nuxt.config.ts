@@ -7,11 +7,5 @@ export default defineNuxtConfig({
     app: {
         baseURL: process.env.NUXT_PUBLIC_BASE_URL || '/',
     },
-    runtimeConfig: {
-        public: {
-            apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
-            storageMode: process.env.NUXT_PUBLIC_STORAGE_MODE || 'api',
-        }
-    },
     css: ['~/assets/css/main.css'],
 })

@@ -78,11 +78,8 @@
           Add Column
         </UButton>
 
-        <!-- Import/Export (local mode only) -->
-        <template v-if="storageMode === 'local'">
-          <UDivider class="my-2" />
-          <ImportExport />
-        </template>
+        <UDivider class="my-2" />
+        <ImportExport />
       </div>
 
       <template #footer>
@@ -97,8 +94,6 @@
 <script setup lang="ts">
 import type { Stage } from '~/types'
 
-const config = useRuntimeConfig()
-const storageMode = config.public.storageMode
 import { pluralize } from '~/utils/pluralize'
 
 const { settings } = useSettings()

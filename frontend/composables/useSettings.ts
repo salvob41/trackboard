@@ -1,4 +1,5 @@
 import type { Settings } from '~/types'
+import { storage } from '~/adapters/localStorage'
 
 const DEFAULT_SETTINGS: Settings = {
   itemLabel: 'Application',
@@ -24,16 +25,15 @@ const PRIMARY_FIELD_PRESETS = [
 ]
 
 export const useSettings = () => {
-  const adapter = useStorage()
   const settings = useState<Settings>('settings', () => DEFAULT_SETTINGS)
 
   const loadSettings = () => {
-    settings.value = adapter.getSettings()
+    settings.value = storage.getSettings()
   }
 
   const updateSettings = (newSettings: Partial<Settings>) => {
     settings.value = { ...settings.value, ...newSettings }
-    adapter.saveSettings(settings.value)
+    storage.saveSettings(settings.value)
   }
 
   return {

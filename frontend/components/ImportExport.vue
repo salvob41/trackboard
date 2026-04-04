@@ -77,6 +77,15 @@ async function handleFileSelect(event: Event) {
     // Normalize optional fields
     if (!Array.isArray(parsed.infoItems)) {
       parsed.infoItems = []
+    } else {
+      // Migrate v1 infoItems: application_id → item_id
+      parsed.infoItems = parsed.infoItems.map((ii: any) => {
+        if ('application_id' in ii && !('item_id' in ii)) {
+          const { application_id, ...rest } = ii
+          return { ...rest, item_id: application_id }
+        }
+        return ii
+      })
     }
 
     // Import as new workspace

@@ -198,10 +198,11 @@ if (typeof window !== 'undefined') {
 // --- Seed stages for active workspace if empty ---
 
 function seedStagesIfEmpty(): Stage[] {
+  const registry = getRegistry()
+  if (!registry) return []
   const k = K()
   const stages = read<Stage>(k.stages)
   if (stages.length > 0) return stages
-  const registry = getRegistry()!
   const ws = registry.workspaces.find(w => w.id === registry.activeWorkspaceId)
   const template = WORKSPACE_TEMPLATES.find(t => t.id === ws?.templateId) || WORKSPACE_TEMPLATES[0]
   const seeded = template.stages.map(s => ({ ...s, id: uuid() }))
@@ -380,7 +381,7 @@ export const storage = {
   },
 
   createWorkspace(name: string, templateId: TemplateId): Workspace {
-    const registry = getRegistry()!
+    const registry = getRegistry() ?? { activeWorkspaceId: '', workspaces: [] }
     const id = uuid()
     const template = WORKSPACE_TEMPLATES.find(t => t.id === templateId) || WORKSPACE_TEMPLATES[0]
     const keys = keysFor(id)
@@ -393,6 +394,9 @@ export const storage = {
 
     const workspace: Workspace = { id, name, templateId, createdAt: now() }
     registry.workspaces.push(workspace)
+    if (!registry.activeWorkspaceId) {
+      registry.activeWorkspaceId = id
+    }
     saveRegistry(registry)
     return workspace
   },
@@ -453,9 +457,12 @@ export const storage = {
     write(keys.infoItems, data.infoItems || [])
     if (data.settings) writeItem(keys.settings, data.settings)
 
-    const registry = getRegistry()!
     const workspace: Workspace = { id, name, templateId, createdAt: now() }
+    const registry = getRegistry() ?? { activeWorkspaceId: id, workspaces: [] }
     registry.workspaces.push(workspace)
+    if (!registry.activeWorkspaceId) {
+      registry.activeWorkspaceId = id
+    }
     saveRegistry(registry)
     return workspace
   },

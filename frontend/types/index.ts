@@ -41,7 +41,7 @@ export interface Settings {
     showSecondaryOnCard: boolean
 }
 
-export type ItemCreate = Omit<Item, 'id' | 'created_at' | 'updated_at' | 'last_event_preview'>
+export type ItemCreate = Omit<Item, 'id' | 'created_at' | 'updated_at' | 'last_event_preview' | 'last_comment_preview'>
 export type ItemUpdate = Partial<ItemCreate>
 export type InfoItemCreate = Omit<InfoItem, 'id' | 'item_id' | 'created_at'>
 export type InfoItemUpdate = Partial<InfoItemCreate>

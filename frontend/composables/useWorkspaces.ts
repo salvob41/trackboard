@@ -18,7 +18,8 @@ export const useWorkspaces = () => {
 
   const switchWorkspace = (id: string) => {
     storage.switchWorkspace(id)
-    window.location.reload()
+    // Use href assignment instead of reload() to ensure a full navigation
+    window.location.href = window.location.pathname
   }
 
   const renameWorkspace = (id: string, name: string) => {

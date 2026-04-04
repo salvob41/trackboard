@@ -9,6 +9,9 @@
             </div>
             <div>
               <h2 class="text-2xl font-bold">{{ item.name }}</h2>
+              <p v-if="item.secondaryField" class="text-base text-gray-500 dark:text-gray-400 mt-0.5">
+                {{ item.secondaryField }}
+              </p>
               <UBadge 
                 :color="getStageColor(item.stage)" 
                 variant="subtle"

@@ -42,6 +42,12 @@
             <UFormGroup label="Primary Field Label" :help="`Label for the main name field`">
               <USelect v-model="localSettings.primaryFieldLabel" :options="PRIMARY_FIELD_PRESETS" @change="handleSaveSettings" />
             </UFormGroup>
+            <UFormGroup label="Secondary Field Label" :help="`Label for the subtitle field`">
+              <USelect v-model="localSettings.secondaryFieldLabel" :options="SECONDARY_FIELD_PRESETS" @change="handleSaveSettings" />
+            </UFormGroup>
+            <UFormGroup label="Show Secondary on Card" :help="`Display the secondary field as a subtitle on cards`">
+              <UToggle v-model="localSettings.showSecondaryOnCard" @change="handleSaveSettings" />
+            </UFormGroup>
           </div>
         </div>
 
@@ -114,7 +120,7 @@ import { WORKSPACE_TEMPLATES } from '~/config/templates'
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
-const { settings, updateSettings, loadSettings, ITEM_LABEL_PRESETS, PRIMARY_FIELD_PRESETS } = useSettings()
+const { settings, updateSettings, loadSettings, ITEM_LABEL_PRESETS, PRIMARY_FIELD_PRESETS, SECONDARY_FIELD_PRESETS, DEFAULT_SETTINGS } = useSettings()
 const { workspaces, activeWorkspace, loadWorkspaces, renameWorkspace, switchWorkspace, deleteWorkspace } = useWorkspaces()
 
 const isOpen = computed({
@@ -122,7 +128,7 @@ const isOpen = computed({
   set: (value) => emit('update:modelValue', value),
 })
 
-const localSettings = ref<Settings>({ itemLabel: 'Application', primaryFieldLabel: 'Company' })
+const localSettings = ref<Settings>({ ...DEFAULT_SETTINGS })
 const workspaceName = ref('')
 const showCreate = ref(false)
 const defaultWorkspaceId = ref<string | null>(null)

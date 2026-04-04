@@ -18,7 +18,15 @@
           <div class="name-icon">
             <UIcon name="i-heroicons-building-office-2" class="text-lg" />
           </div>
-          <h3 class="name-title">{{ item.name }}</h3>
+          <div class="name-text">
+            <h3 class="name-title">{{ item.name }}</h3>
+            <p
+              v-if="settings.showSecondaryOnCard && item.secondaryField"
+              class="name-subtitle"
+            >
+              {{ item.secondaryField }}
+            </p>
+          </div>
         </div>
         <div class="card-actions">
           <UButton 
@@ -95,6 +103,7 @@ const formatDate = (date: string) => {
 }
 
 const { stages } = useStages()
+const { settings } = useSettings()
 
 const getAccentGradient = (stageKey: string) => {
   const stage = stages.value.find(s => s.key === stageKey)
@@ -174,8 +183,24 @@ const getAccentGradient = (stageKey: string) => {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.name-text {
   flex: 1;
   min-width: 0;
+}
+
+.name-subtitle {
+  font-size: 0.8125rem;
+  color: rgb(107, 114, 128);
+  margin: 2px 0 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark .name-subtitle {
+  color: rgb(156, 163, 175);
 }
 
 .name-icon {

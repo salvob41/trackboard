@@ -16,6 +16,14 @@
           />
         </UFormGroup>
 
+        <UFormGroup :label="secondaryFieldLabel" name="secondaryField">
+          <UInput
+            v-model="formData.secondaryField"
+            :placeholder="`Enter ${secondaryFieldLabel.toLowerCase()}`"
+            :disabled="loading"
+          />
+        </UFormGroup>
+
         <UFormGroup label="Stage" name="stage" required>
           <USelect 
             v-model="formData.stage" 
@@ -71,6 +79,7 @@ const emit = defineEmits<{
 const { settings } = useSettings()
 const itemLabel = computed(() => settings.value.itemLabel)
 const primaryFieldLabel = computed(() => settings.value.primaryFieldLabel)
+const secondaryFieldLabel = computed(() => settings.value.secondaryFieldLabel)
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -87,6 +96,7 @@ const stageOptions = computed(() => props.stages.map(stage => ({
 
 const formData = ref<ItemCreate>({
   name: '',
+  secondaryField: '',
   stage: 'wishlist',
   notes: ''
 })
@@ -95,12 +105,14 @@ watch(() => props.item, (item) => {
   if (item) {
     formData.value = {
       name: item.name,
+      secondaryField: item.secondaryField || '',
       stage: item.stage,
       notes: item.notes || ''
     }
   } else {
     formData.value = {
       name: '',
+      secondaryField: '',
       stage: 'wishlist',
       notes: ''
     }

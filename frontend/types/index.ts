@@ -42,3 +42,26 @@ export type ItemCreate = Omit<Item, 'id' | 'created_at' | 'updated_at' | 'last_e
 export type ItemUpdate = Partial<ItemCreate>
 export type InfoItemCreate = Omit<InfoItem, 'id' | 'item_id' | 'created_at'>
 export type InfoItemUpdate = Partial<InfoItemCreate>
+
+export interface Workspace {
+    id: string
+    name: string
+    templateId: TemplateId
+    createdAt: string
+}
+
+export interface WorkspaceRegistry {
+    activeWorkspaceId: string
+    workspaces: Workspace[]
+}
+
+export type TemplateId = 'job-application' | 'lead-sales' | 'property' | 'project' | 'custom'
+
+export interface WorkspaceTemplate {
+    id: TemplateId
+    name: string
+    description: string
+    icon: string
+    stages: Omit<Stage, 'id'>[]
+    settings: Settings
+}

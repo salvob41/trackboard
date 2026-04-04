@@ -10,6 +10,7 @@
           <div class="flex items-center gap-3">
             <UIcon name="i-heroicons-briefcase" class="text-3xl text-primary" />
             <h1 class="text-2xl font-bold">{{ appTitle }}</h1>
+            <WorkspaceSelector class="ml-2" @create="showCreateWorkspace = true" />
           </div>
           <div class="flex items-center gap-3">
             <UButton 
@@ -102,6 +103,10 @@
       v-model="showSettings"
     />
 
+    <WorkspaceCreateModal
+      v-model="showCreateWorkspace"
+    />
+
     <ConfirmDeleteModal
       v-model="showDeleteModal"
       :item-name="itemToDelete?.name || ''"
@@ -147,6 +152,7 @@ const isDark = computed(() => colorMode.value === 'dark')
 const toast = useToast()
 const { recordBackup, recordChange } = useBackup()
 const { settings, loadSettings } = useSettings()
+const { loadWorkspaces, activeWorkspace, exportWorkspace } = useWorkspaces()
 
 const appTitle = computed(() => `${settings.value.itemLabel} Tracker`)
 const itemLabel = computed(() => settings.value.itemLabel)
@@ -163,6 +169,7 @@ const items = ref<Item[]>([])
 const pending = ref(true)
 const error = ref<Error | null>(null)
 const showSettings = ref(false)
+const showCreateWorkspace = ref(false)
 const showModal = ref(false)
 const selectedItem = ref<Item | undefined>()
 const showDetailModal = ref(false)
@@ -328,34 +335,14 @@ const handleConfirmDelete = async () => {
 }
 
 const handleQuickExport = () => {
-  const KEYS = {
-    items: 'app-tracker:items',
-    stages: 'app-tracker:stages',
-    infoItems: 'app-tracker:info-items',
-  }
-
-  const data = {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    items: JSON.parse(localStorage.getItem(KEYS.items) || '[]'),
-    stages: JSON.parse(localStorage.getItem(KEYS.stages) || '[]'),
-    infoItems: JSON.parse(localStorage.getItem(KEYS.infoItems) || '[]'),
-  }
-
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const date = new Date().toISOString().split('T')[0]
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `app-tracker-export-${date}.json`
-  a.click()
-  URL.revokeObjectURL(url)
-
+  if (!activeWorkspace.value) return
+  exportWorkspace(activeWorkspace.value.id)
   recordBackup()
   toast.add({ title: 'Data exported successfully', color: 'green', icon: 'i-heroicons-check-circle' })
 }
 
 onMounted(() => {
+  loadWorkspaces()
   loadSettings()
   loadItems()
 })

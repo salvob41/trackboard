@@ -80,7 +80,7 @@ function saveRegistry(registry: WorkspaceRegistry): void {
 
 export function getActiveWorkspaceId(): string {
   const registry = getRegistry()
-  if (!registry) throw new Error('No workspace registry found')
+  if (!registry) return ''
   return registry.activeWorkspaceId
 }
 
@@ -353,8 +353,9 @@ export const storage = {
 
   // Settings
   getSettings(): Settings {
+    const registry = getRegistry()
+    if (!registry) return WORKSPACE_TEMPLATES[0].settings
     const k = K()
-    const registry = getRegistry()!
     const ws = registry.workspaces.find(w => w.id === registry.activeWorkspaceId)
     const template = WORKSPACE_TEMPLATES.find(t => t.id === ws?.templateId) || WORKSPACE_TEMPLATES[0]
     const stored = readItem<Settings>(k.settings)

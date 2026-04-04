@@ -1,11 +1,14 @@
 <template>
-  <UModal v-model="isOpen" :ui="{ width: 'sm:max-w-lg' }">
+  <UModal v-model="isOpen" :prevent-close="required" :ui="{ width: 'sm:max-w-lg' }">
     <UCard>
       <template #header>
         <div class="flex justify-between items-center">
-          <h2 class="text-xl font-bold">New Workspace</h2>
-          <UButton icon="i-heroicons-x-mark" color="gray" variant="ghost" @click="isOpen = false" />
+          <h2 class="text-xl font-bold">{{ required ? 'Create Your First Board' : 'New Workspace' }}</h2>
+          <UButton v-if="!required" icon="i-heroicons-x-mark" color="gray" variant="ghost" @click="isOpen = false" />
         </div>
+        <p v-if="required" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Choose a template to get started. You can customize everything later.
+        </p>
       </template>
 
       <div class="space-y-5">
@@ -51,9 +54,9 @@
 
       <template #footer>
         <div class="flex justify-end gap-3">
-          <UButton color="gray" @click="isOpen = false">Cancel</UButton>
+          <UButton v-if="!required" color="gray" @click="isOpen = false">Cancel</UButton>
           <UButton color="primary" :disabled="!name.trim()" @click="handleCreate">
-            Create Workspace
+            {{ required ? "Let's go!" : 'Create Workspace' }}
           </UButton>
         </div>
       </template>
@@ -67,6 +70,7 @@ import { WORKSPACE_TEMPLATES } from '~/config/templates'
 
 const props = defineProps<{
   modelValue: boolean
+  required?: boolean
 }>()
 
 const emit = defineEmits<{

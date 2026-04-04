@@ -118,7 +118,12 @@
     />
 
     <ClientOnly>
-      <FirstVisitNotice />
+      <FirstVisitNotice v-if="!needsOnboarding" />
+      <WorkspaceCreateModal
+        v-model="needsOnboarding"
+        :required="true"
+        @update:model-value="handleOnboardingComplete"
+      />
     </ClientOnly>
 
     <footer class="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 mt-auto">
@@ -183,6 +188,7 @@ const blockDetailForItemId = ref<number | string | null>(null)
 const showDeleteModal = ref(false)
 const itemToDelete = ref<Item | null>(null)
 const deleteLoading = ref(false)
+const needsOnboarding = ref(false)
 
 const loadItems = async (showLoading = true) => {
   try {
@@ -336,8 +342,21 @@ const handleQuickExport = () => {
   toast.add({ title: 'Data exported successfully', color: 'green', icon: 'i-heroicons-check-circle' })
 }
 
+const handleOnboardingComplete = () => {
+  needsOnboarding.value = false
+  loadWorkspaces()
+  loadSettings()
+  loadItems()
+}
+
 onMounted(() => {
   loadWorkspaces()
+  const workspaces = useWorkspaces().workspaces
+  if (workspaces.value.length === 0) {
+    needsOnboarding.value = true
+    pending.value = false
+    return
+  }
   loadSettings()
   loadItems()
 })

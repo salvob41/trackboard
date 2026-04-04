@@ -133,15 +133,19 @@ function migrateToWorkspaces(): void {
     localStorage.setItem('app-tracker:migration-version', '1')
   }
 
-  const id = uuid()
-  const keys = keysFor(id)
-
-  // Move existing flat data into the new workspace namespace
+  // Check if there's existing data to migrate
   const items = read<Item>('app-tracker:items')
   const stages = read<Stage>('app-tracker:stages')
   const infoItems = read<InfoItem>('app-tracker:info-items')
   const settings = readItem<Settings>('app-tracker:settings')
 
+  // If no existing data, skip — let the UI show the template picker
+  if (items.length === 0 && stages.length === 0) return
+
+  const id = uuid()
+  const keys = keysFor(id)
+
+  // Move existing flat data into the new workspace namespace
   write(keys.items, items)
   write(keys.infoItems, infoItems)
 

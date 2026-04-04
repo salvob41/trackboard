@@ -46,9 +46,7 @@
             <h3 class="section-title">Notes</h3>
           </div>
           <div class="section-content">
-            <p v-if="item.notes" class="notes-content">
-              {{ item.notes }}
-            </p>
+            <p v-if="item.notes" class="notes-content" v-html="linkify(item.notes)"></p>
             <p v-else class="text-gray-400 dark:text-gray-600 italic">
               No notes added yet
             </p>
@@ -86,7 +84,7 @@
                   />
                 </div>
               </div>
-              <p class="info-item-content">{{ infoItem.content }}</p>
+              <p class="info-item-content" v-html="linkify(infoItem.content)"></p>
             </div>
             <div v-if="!(fullItem?.info_items ?? []).filter(i => !i.event_type || (i.event_type !== 'transition' && i.event_type !== 'comment')).length" class="text-gray-400 dark:text-gray-600 italic">
               No additional info yet. Add a tagged item below.
@@ -168,7 +166,7 @@
                       @click="startEditEvent(eventItem)" />
                   </div>
                 </div>
-                <p v-if="eventItem.content" class="event-content">{{ eventItem.content }}</p>
+                <p v-if="eventItem.content" class="event-content" v-html="linkify(eventItem.content)"></p>
               </template>
 
               <!-- Edit mode -->
@@ -356,6 +354,12 @@ const formatDateTime = (date: string) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+const linkify = (text: string | null | undefined): string => {
+  if (!text) return ''
+  const urlRegex = /(https?:\/\/[^\s<]+)/g
+  return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>')
 }
 
 const openEditItem = (infoItem: InfoItem) => {

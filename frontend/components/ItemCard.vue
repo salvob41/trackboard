@@ -43,11 +43,11 @@
       <div class="card-body">
         <div v-if="item.last_event_preview" class="notes">
           <UIcon name="i-heroicons-bolt" class="notes-icon" />
-          <p class="notes-text">{{ item.last_event_preview }}</p>
+          <p class="notes-text" v-html="linkify(item.last_event_preview)"></p>
         </div>
         <div v-if="item.last_comment_preview && item.last_comment_preview !== item.last_event_preview" class="notes">
           <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="notes-icon" />
-          <p class="notes-text">{{ item.last_comment_preview }}</p>
+          <p class="notes-text" v-html="linkify(item.last_comment_preview)"></p>
         </div>
         <div v-if="!item.last_event_preview && !item.last_comment_preview" class="notes-empty">
           <UIcon name="i-heroicons-clock" class="notes-icon" />
@@ -91,6 +91,12 @@ const formatDate = (date: string) => {
     day: 'numeric',
     year: 'numeric'
   })
+}
+
+const linkify = (text: string | null | undefined): string => {
+  if (!text) return ''
+  const urlRegex = /(https?:\/\/[^\s<]+)/g
+  return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>')
 }
 
 const { stages } = useStages()

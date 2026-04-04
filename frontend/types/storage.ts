@@ -8,6 +8,7 @@ import type {
   InfoItemCreate,
   InfoItemUpdate,
   Stage,
+  Settings,
 } from '~/types'
 
 export interface StorageAdapter {
@@ -29,4 +30,8 @@ export interface StorageAdapter {
   createInfoItem(itemId: number | string, infoItem: InfoItemCreate): Promise<InfoItem>
   updateInfoItem(itemId: number | string, infoItemId: number | string, infoItem: InfoItemUpdate): Promise<InfoItem>
   deleteInfoItem(itemId: number | string, infoItemId: number | string): Promise<void>
+
+  // Settings
+  getSettings(): Settings
+  saveSettings(settings: Settings): void
 }

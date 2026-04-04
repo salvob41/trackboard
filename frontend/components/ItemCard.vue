@@ -67,6 +67,7 @@
 
 <script setup lang="ts">
 import type { Item } from '~/types'
+import { linkify } from '~/utils/linkify'
 
 const props = defineProps<{
   item: Item
@@ -91,12 +92,6 @@ const formatDate = (date: string) => {
     day: 'numeric',
     year: 'numeric'
   })
-}
-
-const linkify = (text: string | null | undefined): string => {
-  if (!text) return ''
-  const urlRegex = /(https?:\/\/[^\s<]+)/g
-  return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>')
 }
 
 const { stages } = useStages()

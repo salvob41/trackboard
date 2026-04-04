@@ -9,7 +9,13 @@ import type {
   InfoItemCreate,
   InfoItemUpdate,
   Stage,
+  Settings,
 } from '~/types'
+
+const DEFAULT_SETTINGS: Settings = {
+  itemLabel: 'Application',
+  primaryFieldLabel: 'Company',
+}
 
 const getBase = () => useRuntimeConfig().public.apiBase
 
@@ -85,5 +91,19 @@ export const apiAdapter: StorageAdapter = {
 
   async deleteInfoItem(itemId: number | string, infoItemId: number | string): Promise<void> {
     await $fetch(`${getBase()}/items/${itemId}/info-items/${infoItemId}`, { method: 'DELETE' })
+  },
+
+  // Settings (stored client-side until API supports it)
+  getSettings(): Settings {
+    try {
+      const raw = localStorage.getItem('app-tracker:settings')
+      return raw ? JSON.parse(raw) : DEFAULT_SETTINGS
+    } catch {
+      return DEFAULT_SETTINGS
+    }
+  },
+
+  saveSettings(settings: Settings): void {
+    localStorage.setItem('app-tracker:settings', JSON.stringify(settings))
   },
 }

@@ -1,10 +1,8 @@
 import type { Settings } from '~/types'
-import { getSettings, saveSettings } from '~/adapters/localStorage'
 
 const DEFAULT_SETTINGS: Settings = {
   itemLabel: 'Application',
   primaryFieldLabel: 'Company',
-  secondaryFieldLabel: 'Position',
 }
 
 const ITEM_LABEL_PRESETS = [
@@ -25,25 +23,17 @@ const PRIMARY_FIELD_PRESETS = [
   { label: 'Contact', value: 'Contact' },
 ]
 
-const SECONDARY_FIELD_PRESETS = [
-  { label: 'Position', value: 'Position' },
-  { label: 'Role', value: 'Role' },
-  { label: 'Description', value: 'Description' },
-  { label: 'Type', value: 'Type' },
-  { label: 'Category', value: 'Category' },
-  { label: 'Department', value: 'Department' },
-]
-
 export const useSettings = () => {
+  const adapter = useStorage()
   const settings = useState<Settings>('settings', () => DEFAULT_SETTINGS)
 
   const loadSettings = () => {
-    settings.value = getSettings()
+    settings.value = adapter.getSettings()
   }
 
   const updateSettings = (newSettings: Partial<Settings>) => {
     settings.value = { ...settings.value, ...newSettings }
-    saveSettings(settings.value)
+    adapter.saveSettings(settings.value)
   }
 
   return {
@@ -52,6 +42,5 @@ export const useSettings = () => {
     updateSettings,
     ITEM_LABEL_PRESETS,
     PRIMARY_FIELD_PRESETS,
-    SECONDARY_FIELD_PRESETS,
   }
 }

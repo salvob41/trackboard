@@ -68,11 +68,10 @@
 </template>
 
 <script setup lang="ts">
+import { pluralize } from '~/utils/pluralize'
+
 const { settings } = useSettings()
-const itemLabelPlural = computed(() => {
-  const label = settings.value.itemLabel
-  return label.endsWith('s') ? label : label + 's'
-})
+const itemLabelPlural = computed(() => pluralize(settings.value.itemLabel))
 
 interface Stats {
   items: number

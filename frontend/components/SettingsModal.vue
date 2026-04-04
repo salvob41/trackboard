@@ -34,13 +34,6 @@
           />
         </UFormGroup>
 
-        <UFormGroup label="Secondary Field Label" :help="`Label for the secondary info field (default: 'Position')`">
-          <USelect
-            v-model="localSettings.secondaryFieldLabel"
-            :options="SECONDARY_FIELD_PRESETS"
-            @change="handleSave"
-          />
-        </UFormGroup>
       </div>
 
       <template #footer>
@@ -63,7 +56,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
-const { settings, updateSettings, loadSettings, ITEM_LABEL_PRESETS, PRIMARY_FIELD_PRESETS, SECONDARY_FIELD_PRESETS } = useSettings()
+const { settings, updateSettings, loadSettings, ITEM_LABEL_PRESETS, PRIMARY_FIELD_PRESETS } = useSettings()
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -73,7 +66,6 @@ const isOpen = computed({
 const localSettings = ref<Settings>({
   itemLabel: 'Application',
   primaryFieldLabel: 'Company',
-  secondaryFieldLabel: 'Position',
 })
 
 onMounted(() => {

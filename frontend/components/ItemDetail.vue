@@ -272,6 +272,7 @@
 
 <script setup lang="ts">
 import type { Item, ItemWithInfoItems, InfoItem, InfoItemCreate } from '~/types'
+import { linkify } from '~/utils/linkify'
 
 const props = defineProps<{
   modelValue: boolean
@@ -354,12 +355,6 @@ const formatDateTime = (date: string) => {
     hour: '2-digit',
     minute: '2-digit'
   })
-}
-
-const linkify = (text: string | null | undefined): string => {
-  if (!text) return ''
-  const urlRegex = /(https?:\/\/[^\s<]+)/g
-  return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>')
 }
 
 const openEditItem = (infoItem: InfoItem) => {

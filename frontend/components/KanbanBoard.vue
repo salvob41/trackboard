@@ -68,11 +68,10 @@ const emit = defineEmits<{
   click: [item: Item]
 }>()
 
+import { pluralize } from '~/utils/pluralize'
+
 const { settings } = useSettings()
-const itemLabelPlural = computed(() => {
-  const label = settings.value.itemLabel
-  return label.endsWith('s') ? label : label + 's'
-})
+const itemLabelPlural = computed(() => pluralize(settings.value.itemLabel))
 
 const columns = ref<Record<string, Item[]>>({})
 

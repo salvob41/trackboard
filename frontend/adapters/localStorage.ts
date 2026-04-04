@@ -32,7 +32,6 @@ const DEFAULT_STAGES: Omit<Stage, 'id'>[] = [
 const DEFAULT_SETTINGS: Settings = {
   itemLabel: 'Application',
   primaryFieldLabel: 'Company',
-  secondaryFieldLabel: 'Position',
 }
 
 function read<T>(key: string): T[] {
@@ -243,13 +242,14 @@ export const localStorageAdapter: StorageAdapter = {
       )
     )
   },
-}
 
-export function getSettings(): Settings {
-  const settings = readItem<Settings>(KEYS.settings)
-  return settings || DEFAULT_SETTINGS
-}
+  // Settings
+  getSettings(): Settings {
+    const settings = readItem<Settings>(KEYS.settings)
+    return settings || DEFAULT_SETTINGS
+  },
 
-export function saveSettings(settings: Settings): void {
-  writeItem(KEYS.settings, settings)
+  saveSettings(settings: Settings): void {
+    writeItem(KEYS.settings, settings)
+  },
 }

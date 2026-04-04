@@ -62,7 +62,7 @@
       :import-stats="importStats"
       @confirm="confirmImport"
       @cancel="cancelImport"
-      @export-first="handleExportThenImport"
+      @export-first="handleExport"
     />
   </div>
 </template>
@@ -181,10 +181,6 @@ function confirmImport() {
 function cancelImport() {
   showConfirmModal.value = false
   pendingImportData.value = null
-}
-
-function handleExportThenImport() {
-  handleExport()
 }
 
 defineExpose({ handleExport })

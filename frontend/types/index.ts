@@ -36,7 +36,6 @@ export interface Stage {
 export interface Settings {
     itemLabel: string
     primaryFieldLabel: string
-    secondaryFieldLabel: string
 }
 
 export type ItemCreate = Omit<Item, 'id' | 'created_at' | 'updated_at' | 'last_event_preview'>

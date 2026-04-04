@@ -3,24 +3,24 @@ import type { InfoItem, InfoItemCreate, InfoItemUpdate } from '~/types'
 export const useInfoItems = () => {
     const adapter = useStorage()
 
-    const getInfoItems = async (applicationId: number | string): Promise<InfoItem[]> => {
-        return adapter.getInfoItems(applicationId)
+    const getInfoItems = async (itemId: number | string): Promise<InfoItem[]> => {
+        return adapter.getInfoItems(itemId)
     }
 
-    const createInfoItem = async (applicationId: number | string, item: InfoItemCreate): Promise<InfoItem> => {
-        return adapter.createInfoItem(applicationId, item)
+    const createInfoItem = async (itemId: number | string, infoItem: InfoItemCreate): Promise<InfoItem> => {
+        return adapter.createInfoItem(itemId, infoItem)
     }
 
     const updateInfoItem = async (
-        applicationId: number | string,
         itemId: number | string,
-        item: InfoItemUpdate
+        infoItemId: number | string,
+        infoItem: InfoItemUpdate
     ): Promise<InfoItem> => {
-        return adapter.updateInfoItem(applicationId, itemId, item)
+        return adapter.updateInfoItem(itemId, infoItemId, infoItem)
     }
 
-    const deleteInfoItem = async (applicationId: number | string, itemId: number | string): Promise<void> => {
-        return adapter.deleteInfoItem(applicationId, itemId)
+    const deleteInfoItem = async (itemId: number | string, infoItemId: number | string): Promise<void> => {
+        return adapter.deleteInfoItem(itemId, infoItemId)
     }
 
     return {

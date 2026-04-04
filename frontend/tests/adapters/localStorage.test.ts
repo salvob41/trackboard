@@ -1,12 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 
 const KEYS = {
-  applications: 'app-tracker:applications',
+  items: 'app-tracker:items',
   stages: 'app-tracker:stages',
   infoItems: 'app-tracker:info-items',
 }
 
-// Inline helpers matching what the adapter uses internally
 function readKey<T>(key: string): T[] {
   try {
     return JSON.parse(localStorage.getItem(key) || '[]')
@@ -32,23 +31,23 @@ describe('localStorage helpers', () => {
   })
 
   it('reads empty array when key is absent', () => {
-    expect(readKey(KEYS.applications)).toEqual([])
+    expect(readKey(KEYS.items)).toEqual([])
   })
 
   it('writes and reads back data', () => {
-    const data = [{ id: '1', company: 'Acme' }]
-    writeKey(KEYS.applications, data)
-    expect(readKey(KEYS.applications)).toEqual(data)
+    const data = [{ id: '1', name: 'Acme' }]
+    writeKey(KEYS.items, data)
+    expect(readKey(KEYS.items)).toEqual(data)
   })
 
-  it('filters info items by application_id', () => {
-    const items = [
-      { id: 'a', application_id: 'app1', content: 'note1' },
-      { id: 'b', application_id: 'app2', content: 'note2' },
+  it('filters info items by item_id', () => {
+    const infoItems = [
+      { id: 'a', item_id: 'item1', content: 'note1' },
+      { id: 'b', item_id: 'item2', content: 'note2' },
     ]
-    writeKey(KEYS.infoItems, items)
-    const all = readKey<{ application_id: string }>(KEYS.infoItems)
-    const filtered = all.filter(i => i.application_id === 'app1')
+    writeKey(KEYS.infoItems, infoItems)
+    const all = readKey<{ item_id: string }>(KEYS.infoItems)
+    const filtered = all.filter(i => i.item_id === 'item1')
     expect(filtered).toHaveLength(1)
     expect(filtered[0]).toMatchObject({ content: 'note1' })
   })
@@ -72,13 +71,13 @@ describe('import/export validation', () => {
     const validExport = {
       version: 1,
       exportedAt: new Date().toISOString(),
-      applications: [],
+      items: [],
       stages: [],
       infoItems: [],
     }
     const isValid = (
       validExport.version === 1 &&
-      'applications' in validExport &&
+      'items' in validExport &&
       'stages' in validExport &&
       'infoItems' in validExport
     )
@@ -86,10 +85,10 @@ describe('import/export validation', () => {
   })
 
   it('rejects missing required keys', () => {
-    const badExport = { version: 1, applications: [] }
+    const badExport = { version: 1, items: [] }
     const isValid = (
       badExport.version === 1 &&
-      'applications' in badExport &&
+      'items' in badExport &&
       'stages' in badExport &&
       'infoItems' in badExport
     )
@@ -97,7 +96,7 @@ describe('import/export validation', () => {
   })
 
   it('rejects unknown version', () => {
-    const futureExport = { version: 99, applications: [], stages: [], infoItems: [] }
+    const futureExport = { version: 99, items: [], stages: [], infoItems: [] }
     const isValid = futureExport.version === 1
     expect(isValid).toBe(false)
   })

@@ -3,15 +3,15 @@
     <UCard>
       <template #header>
         <h3 class="text-lg font-semibold">
-          {{ isEdit ? 'Edit Application' : 'New Application' }}
+          {{ isEdit ? 'Edit ' + itemLabel : 'New ' + itemLabel }}
         </h3>
       </template>
 
       <UForm :state="formData" @submit="handleSubmit" class="space-y-4">
-        <UFormGroup label="Company" name="company" required>
+        <UFormGroup :label="primaryFieldLabel" name="name" required>
           <UInput 
-            v-model="formData.company" 
-            placeholder="Enter company name"
+            v-model="formData.name" 
+            :placeholder="`Enter ${primaryFieldLabel.toLowerCase()} name`"
             :disabled="loading"
           />
         </UFormGroup>
@@ -27,7 +27,7 @@
         <UFormGroup label="Notes" name="notes">
           <UTextarea 
             v-model="formData.notes" 
-            placeholder="Add notes about this application..."
+            placeholder="Add notes..."
             :rows="3"
             :disabled="loading"
           />
@@ -55,25 +55,29 @@
 </template>
 
 <script setup lang="ts">
-import type { Application, ApplicationCreate, Stage } from '~/types'
+import type { Item, ItemCreate, Stage } from '~/types'
 
 const props = defineProps<{
   modelValue: boolean
-  application?: Application
+  item?: Item
   stages: Stage[]
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  submit: [data: ApplicationCreate]
+  submit: [data: ItemCreate]
 }>()
+
+const { settings } = useSettings()
+const itemLabel = computed(() => settings.value.itemLabel)
+const primaryFieldLabel = computed(() => settings.value.primaryFieldLabel)
 
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
 
-const isEdit = computed(() => !!props.application)
+const isEdit = computed(() => !!props.item)
 const loading = ref(false)
 
 const stageOptions = computed(() => props.stages.map(stage => ({
@@ -81,22 +85,22 @@ const stageOptions = computed(() => props.stages.map(stage => ({
   value: stage.key
 })))
 
-const formData = ref<ApplicationCreate>({
-  company: '',
+const formData = ref<ItemCreate>({
+  name: '',
   stage: 'wishlist',
   notes: ''
 })
 
-watch(() => props.application, (app) => {
-  if (app) {
+watch(() => props.item, (item) => {
+  if (item) {
     formData.value = {
-      company: app.company,
-      stage: app.stage,
-      notes: app.notes || ''
+      name: item.name,
+      stage: item.stage,
+      notes: item.notes || ''
     }
   } else {
     formData.value = {
-      company: '',
+      name: '',
       stage: 'wishlist',
       notes: ''
     }

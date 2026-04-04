@@ -1,10 +1,10 @@
 // frontend/adapters/api.ts
 import type { StorageAdapter } from '~/types/storage'
 import type {
-  Application,
-  ApplicationWithInfoItems,
-  ApplicationCreate,
-  ApplicationUpdate,
+  Item,
+  ItemWithInfoItems,
+  ItemCreate,
+  ItemUpdate,
   InfoItem,
   InfoItemCreate,
   InfoItemUpdate,
@@ -14,31 +14,31 @@ import type {
 const getBase = () => useRuntimeConfig().public.apiBase
 
 export const apiAdapter: StorageAdapter = {
-  // Applications
-  async getApplications(): Promise<Application[]> {
-    return $fetch<Application[]>(`${getBase()}/applications`)
+  // Items
+  async getItems(): Promise<Item[]> {
+    return $fetch<Item[]>(`${getBase()}/items`)
   },
 
-  async getApplication(id: number | string): Promise<ApplicationWithInfoItems> {
-    return $fetch<ApplicationWithInfoItems>(`${getBase()}/applications/${id}`)
+  async getItem(id: number | string): Promise<ItemWithInfoItems> {
+    return $fetch<ItemWithInfoItems>(`${getBase()}/items/${id}`)
   },
 
-  async createApplication(data: ApplicationCreate): Promise<Application> {
-    return $fetch<Application>(`${getBase()}/applications`, {
+  async createItem(data: ItemCreate): Promise<Item> {
+    return $fetch<Item>(`${getBase()}/items`, {
       method: 'POST',
       body: data,
     })
   },
 
-  async updateApplication(id: number | string, data: ApplicationUpdate): Promise<Application> {
-    return $fetch<Application>(`${getBase()}/applications/${id}`, {
+  async updateItem(id: number | string, data: ItemUpdate): Promise<Item> {
+    return $fetch<Item>(`${getBase()}/items/${id}`, {
       method: 'PUT',
       body: data,
     })
   },
 
-  async deleteApplication(id: number | string): Promise<void> {
-    await $fetch(`${getBase()}/applications/${id}`, { method: 'DELETE' })
+  async deleteItem(id: number | string): Promise<void> {
+    await $fetch(`${getBase()}/items/${id}`, { method: 'DELETE' })
   },
 
   // Stages
@@ -65,25 +65,25 @@ export const apiAdapter: StorageAdapter = {
   },
 
   // Info Items
-  async getInfoItems(applicationId: number | string): Promise<InfoItem[]> {
-    return $fetch<InfoItem[]>(`${getBase()}/applications/${applicationId}/info-items/`)
+  async getInfoItems(itemId: number | string): Promise<InfoItem[]> {
+    return $fetch<InfoItem[]>(`${getBase()}/items/${itemId}/info-items/`)
   },
 
-  async createInfoItem(applicationId: number | string, item: InfoItemCreate): Promise<InfoItem> {
-    return $fetch<InfoItem>(`${getBase()}/applications/${applicationId}/info-items/`, {
+  async createInfoItem(itemId: number | string, infoItem: InfoItemCreate): Promise<InfoItem> {
+    return $fetch<InfoItem>(`${getBase()}/items/${itemId}/info-items/`, {
       method: 'POST',
-      body: item,
+      body: infoItem,
     })
   },
 
-  async updateInfoItem(applicationId: number | string, itemId: number | string, item: InfoItemUpdate): Promise<InfoItem> {
-    return $fetch<InfoItem>(`${getBase()}/applications/${applicationId}/info-items/${itemId}`, {
+  async updateInfoItem(itemId: number | string, infoItemId: number | string, infoItem: InfoItemUpdate): Promise<InfoItem> {
+    return $fetch<InfoItem>(`${getBase()}/items/${itemId}/info-items/${infoItemId}`, {
       method: 'PUT',
-      body: item,
+      body: infoItem,
     })
   },
 
-  async deleteInfoItem(applicationId: number | string, itemId: number | string): Promise<void> {
-    await $fetch(`${getBase()}/applications/${applicationId}/info-items/${itemId}`, { method: 'DELETE' })
+  async deleteInfoItem(itemId: number | string, infoItemId: number | string): Promise<void> {
+    await $fetch(`${getBase()}/items/${itemId}/info-items/${infoItemId}`, { method: 'DELETE' })
   },
 }

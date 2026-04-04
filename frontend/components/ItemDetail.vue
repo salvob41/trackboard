@@ -1,21 +1,21 @@
 <template>
   <UModal v-model="isOpen" :ui="{ width: 'sm:max-w-2xl' }">
-    <UCard v-if="application">
+    <UCard v-if="item">
       <template #header>
         <div class="flex justify-between items-start">
           <div class="flex items-center gap-3">
-            <div class="company-icon-large">
+            <div class="name-icon-large">
               <UIcon name="i-heroicons-building-office-2" class="text-2xl" />
             </div>
             <div>
-              <h2 class="text-2xl font-bold">{{ application.company }}</h2>
+              <h2 class="text-2xl font-bold">{{ item.name }}</h2>
               <UBadge 
-                :color="getStageColor(application.stage)" 
+                :color="getStageColor(item.stage)" 
                 variant="subtle"
                 size="lg"
                 class="mt-1"
               >
-                {{ getStageLabel(application.stage) }}
+                {{ getStageLabel(item.stage) }}
               </UBadge>
             </div>
           </div>
@@ -46,8 +46,8 @@
             <h3 class="section-title">Notes</h3>
           </div>
           <div class="section-content">
-            <p v-if="application.notes" class="notes-content">
-              {{ application.notes }}
+            <p v-if="item.notes" class="notes-content">
+              {{ item.notes }}
             </p>
             <p v-else class="text-gray-400 dark:text-gray-600 italic">
               No notes added yet
@@ -63,35 +63,34 @@
           </div>
           <div class="section-content space-y-4">
             <div
-              v-for="item in (fullApplication?.info_items ?? []).filter(i => !i.event_type || (i.event_type !== 'transition' && i.event_type !== 'comment'))"
-              :key="item.id"
+              v-for="infoItem in (fullItem?.info_items ?? []).filter(i => !i.event_type || (i.event_type !== 'transition' && i.event_type !== 'comment'))"
+              :key="infoItem.id"
               class="info-item-block"
             >
               <div class="info-item-header">
-                <UBadge color="primary" variant="soft" size="sm">{{ item.tag }}</UBadge>
+                <UBadge color="primary" variant="soft" size="sm">{{ infoItem.tag }}</UBadge>
                 <div class="info-item-actions">
                   <UButton
                     icon="i-heroicons-pencil"
                     size="xs"
                     color="gray"
                     variant="ghost"
-                    @click="openEditItem(item)"
+                    @click="openEditItem(infoItem)"
                   />
                   <UButton
                     icon="i-heroicons-trash"
                     size="xs"
                     color="red"
                     variant="ghost"
-                    @click="handleDeleteItem(item.id)"
+                    @click="handleDeleteItem(infoItem.id)"
                   />
                 </div>
               </div>
-              <p class="info-item-content">{{ item.content }}</p>
+              <p class="info-item-content">{{ infoItem.content }}</p>
             </div>
-            <div v-if="!(fullApplication?.info_items ?? []).filter(i => !i.event_type || (i.event_type !== 'transition' && i.event_type !== 'comment')).length" class="text-gray-400 dark:text-gray-600 italic">
+            <div v-if="!(fullItem?.info_items ?? []).filter(i => !i.event_type || (i.event_type !== 'transition' && i.event_type !== 'comment')).length" class="text-gray-400 dark:text-gray-600 italic">
               No additional info yet. Add a tagged item below.
             </div>
-            <!-- Add new item form -->
             <div v-if="!showAddForm" class="pt-2">
               <UButton
                 icon="i-heroicons-plus"
@@ -140,39 +139,36 @@
               No activity yet.
             </div>
 
-            <div v-for="item in eventItems" :key="item.id" class="event-item">
+            <div v-for="eventItem in eventItems" :key="eventItem.id" class="event-item">
               <!-- View mode -->
-              <template v-if="editingEventId !== item.id">
+              <template v-if="editingEventId !== eventItem.id">
                 <div class="event-header">
-                  <!-- Transition badge -->
-                  <template v-if="item.event_type === 'transition'">
+                  <template v-if="eventItem.event_type === 'transition'">
                     <div class="flex items-center gap-1 flex-wrap">
-                      <UBadge :color="getStageColor(item.from_stage)" variant="subtle" size="sm">
-                        {{ getStageLabel(item.from_stage) }}
+                      <UBadge :color="getStageColor(eventItem.from_stage)" variant="subtle" size="sm">
+                        {{ getStageLabel(eventItem.from_stage) }}
                       </UBadge>
                       <UIcon name="i-heroicons-arrow-right" class="text-gray-400 text-sm" />
-                      <UBadge :color="getStageColor(item.to_stage)" variant="subtle" size="sm">
-                        {{ getStageLabel(item.to_stage) }}
+                      <UBadge :color="getStageColor(eventItem.to_stage)" variant="subtle" size="sm">
+                        {{ getStageLabel(eventItem.to_stage) }}
                       </UBadge>
                     </div>
                   </template>
-                  <!-- Comment icon -->
                   <template v-else>
                     <div class="flex items-center gap-1">
                       <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="text-primary text-sm" />
                       <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Comment</span>
                     </div>
                   </template>
-                  <!-- Date + edit button -->
                   <div class="flex items-center gap-2 ml-auto">
                     <span class="text-xs text-gray-400">
-                      {{ formatDateTime(item.event_date ?? item.created_at) }}
+                      {{ formatDateTime(eventItem.event_date ?? eventItem.created_at) }}
                     </span>
                     <UButton icon="i-heroicons-pencil" size="xs" color="gray" variant="ghost"
-                      @click="startEditEvent(item)" />
+                      @click="startEditEvent(eventItem)" />
                   </div>
                 </div>
-                <p v-if="item.content" class="event-content">{{ item.content }}</p>
+                <p v-if="eventItem.content" class="event-content">{{ eventItem.content }}</p>
               </template>
 
               <!-- Edit mode -->
@@ -221,13 +217,13 @@
             <div class="timeline-item">
               <div class="timeline-label">Created</div>
               <div class="timeline-value">
-                {{ formatDateTime(application.created_at) }}
+                {{ formatDateTime(item.created_at) }}
               </div>
             </div>
-            <div v-if="application.updated_at" class="timeline-item">
+            <div v-if="item.updated_at" class="timeline-item">
               <div class="timeline-label">Last Updated</div>
               <div class="timeline-value">
-                {{ formatDateTime(application.updated_at) }}
+                {{ formatDateTime(item.updated_at) }}
               </div>
             </div>
           </div>
@@ -242,12 +238,12 @@
           <div class="section-content">
             <div class="metadata-grid">
               <div class="metadata-item">
-                <div class="metadata-label">Application ID</div>
-                <div class="metadata-value">#{{ application.id }}</div>
+                <div class="metadata-label">Item ID</div>
+                <div class="metadata-value">#{{ item.id }}</div>
               </div>
               <div class="metadata-item">
                 <div class="metadata-label">Current Stage</div>
-                <div class="metadata-value">{{ getStageLabel(application.stage) }}</div>
+                <div class="metadata-value">{{ getStageLabel(item.stage) }}</div>
               </div>
             </div>
           </div>
@@ -262,7 +258,7 @@
             icon="i-heroicons-trash"
             @click="handleDelete"
           >
-            Delete Application
+            Delete {{ itemLabel }}
           </UButton>
           <UButton 
             color="gray"
@@ -277,21 +273,24 @@
 </template>
 
 <script setup lang="ts">
-import type { Application, ApplicationWithInfoItems, InfoItem, Stage } from '~/types'
+import type { Item, ItemWithInfoItems, InfoItem, InfoItemCreate } from '~/types'
 
 const props = defineProps<{
   modelValue: boolean
-  application?: Application
+  item?: Item
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  edit: [application: Application]
+  edit: [item: Item]
   delete: [id: number]
 }>()
 
+const { settings } = useSettings()
+const itemLabel = computed(() => settings.value.itemLabel)
+
 const { stages } = useStages()
-const { getApplication } = useApplications()
+const { getItem } = useItems()
 const { createInfoItem, updateInfoItem, deleteInfoItem } = useInfoItems()
 
 const isOpen = computed({
@@ -299,7 +298,7 @@ const isOpen = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
-const fullApplication = ref<ApplicationWithInfoItems | null>(null)
+const fullItem = ref<ItemWithInfoItems | null>(null)
 const showAddForm = ref(false)
 const editingItemId = ref<number | null>(null)
 const newItem = ref({ tag: '', content: '' })
@@ -313,7 +312,7 @@ const editEventDate = ref('')
 const editEventContent = ref('')
 
 const eventItems = computed(() =>
-  (fullApplication.value?.info_items ?? [])
+  (fullItem.value?.info_items ?? [])
     .filter(i => i.event_type === 'transition' || i.event_type === 'comment')
     .sort((a, b) => {
       const dateA = a.event_date ?? a.created_at
@@ -322,22 +321,22 @@ const eventItems = computed(() =>
     })
 )
 
-watch([() => props.modelValue, () => props.application], async ([open, app]) => {
-  if (open && app) {
+watch([() => props.modelValue, () => props.item], async ([open, item]) => {
+  if (open && item) {
     try {
-      fullApplication.value = await getApplication(app.id) as ApplicationWithInfoItems
+      fullItem.value = await getItem(item.id) as ItemWithInfoItems
     } catch {
-      fullApplication.value = null
+      fullItem.value = null
     }
     showAddForm.value = false
     editingItemId.value = null
     newItem.value = { tag: '', content: '' }
   } else {
-    fullApplication.value = null
+    fullItem.value = null
   }
 }, { immediate: true })
 
-const application = computed(() => props.application ?? fullApplication.value)
+const item = computed(() => props.item ?? fullItem.value)
 
 const getStageColor = (stageKey: string) => {
   const stageConfig = stages.value.find(s => s.key === stageKey)
@@ -359,9 +358,9 @@ const formatDateTime = (date: string) => {
   })
 }
 
-const openEditItem = (item: InfoItem) => {
-  editingItemId.value = item.id
-  newItem.value = { tag: item.tag, content: item.content }
+const openEditItem = (infoItem: InfoItem) => {
+  editingItemId.value = infoItem.id
+  newItem.value = { tag: infoItem.tag || '', content: infoItem.content || '' }
   showAddForm.value = true
 }
 
@@ -372,20 +371,20 @@ const cancelAdd = () => {
 }
 
 const handleAddItem = async () => {
-  if (!fullApplication.value || (!newItem.value.tag.trim() || !newItem.value.content.trim())) return
+  if (!fullItem.value || (!newItem.value.tag.trim() || !newItem.value.content.trim())) return
   addLoading.value = true
   try {
     if (editingItemId.value) {
       const updated = await updateInfoItem(
-        fullApplication.value.id,
+        fullItem.value.id,
         editingItemId.value,
         newItem.value
       )
-      const idx = fullApplication.value.info_items.findIndex(i => i.id === editingItemId.value)
-      if (idx !== -1) fullApplication.value.info_items[idx] = updated
+      const idx = fullItem.value.info_items.findIndex(i => i.id === editingItemId.value)
+      if (idx !== -1) fullItem.value.info_items[idx] = updated
     } else {
-      const created = await createInfoItem(fullApplication.value.id, newItem.value)
-      fullApplication.value.info_items = [...(fullApplication.value.info_items || []), created]
+      const created = await createInfoItem(fullItem.value.id, newItem.value)
+      fullItem.value.info_items = [...(fullItem.value.info_items || []), created]
     }
     cancelAdd()
   } finally {
@@ -394,24 +393,24 @@ const handleAddItem = async () => {
 }
 
 const handleDeleteItem = async (itemId: number) => {
-  if (!fullApplication.value || !confirm('Delete this item?')) return
-  await deleteInfoItem(fullApplication.value.id, itemId)
-  fullApplication.value.info_items = fullApplication.value.info_items.filter(i => i.id !== itemId)
+  if (!fullItem.value || !confirm('Delete this item?')) return
+  await deleteInfoItem(fullItem.value.id, itemId)
+  fullItem.value.info_items = fullItem.value.info_items.filter(i => i.id !== itemId)
 }
 
 const handleAddComment = async () => {
-  if (!fullApplication.value || !newComment.value.trim()) return
+  if (!fullItem.value || !newComment.value.trim()) return
   commentLoading.value = true
   try {
-    const created = await createInfoItem(fullApplication.value.id, {
+    const created = await createInfoItem(fullItem.value.id, {
       event_type: 'comment',
       content: newComment.value.trim(),
       event_date: new Date().toISOString(),
       tag: null,
-      from_stage: fullApplication.value.stage,
-      to_stage: fullApplication.value.stage,
+      from_stage: fullItem.value.stage,
+      to_stage: fullItem.value.stage,
     })
-    fullApplication.value.info_items = [...(fullApplication.value.info_items ?? []), created]
+    fullItem.value.info_items = [...(fullItem.value.info_items ?? []), created]
     newComment.value = ''
     showAddCommentForm.value = false
   } finally {
@@ -419,37 +418,37 @@ const handleAddComment = async () => {
   }
 }
 
-const startEditEvent = (item: InfoItem) => {
-  editingEventId.value = item.id
-  editEventDate.value = item.event_date
-    ? new Date(item.event_date).toISOString().slice(0, 16)
-    : new Date(item.created_at).toISOString().slice(0, 16)
-  editEventContent.value = item.content ?? ''
+const startEditEvent = (infoItem: InfoItem) => {
+  editingEventId.value = infoItem.id
+  editEventDate.value = infoItem.event_date
+    ? new Date(infoItem.event_date).toISOString().slice(0, 16)
+    : new Date(infoItem.created_at).toISOString().slice(0, 16)
+  editEventContent.value = infoItem.content ?? ''
 }
 
 const saveEditEvent = async () => {
-  if (!fullApplication.value || !editingEventId.value) return
-  const updated = await updateInfoItem(fullApplication.value.id, editingEventId.value, {
+  if (!fullItem.value || !editingEventId.value) return
+  const updated = await updateInfoItem(fullItem.value.id, editingEventId.value, {
     content: editEventContent.value || null,
     event_date: editEventDate.value ? new Date(editEventDate.value).toISOString() : null,
   })
-  const idx = fullApplication.value.info_items.findIndex(i => i.id === editingEventId.value)
-  if (idx !== -1) fullApplication.value.info_items[idx] = updated
+  const idx = fullItem.value.info_items.findIndex(i => i.id === editingEventId.value)
+  if (idx !== -1) fullItem.value.info_items[idx] = updated
   editingEventId.value = null
 }
 
 const cancelEditEvent = () => { editingEventId.value = null }
 
 const handleEdit = () => {
-  if (props.application) {
-    emit('edit', props.application)
+  if (props.item) {
+    emit('edit', props.item)
     closeModal()
   }
 }
 
 const handleDelete = () => {
-  if (props.application && confirm('Are you sure you want to delete this application?')) {
-    emit('delete', props.application.id)
+  if (props.item && confirm('Are you sure you want to delete this ' + itemLabel.value + '?')) {
+    emit('delete', props.item.id)
     closeModal()
   }
 }
@@ -460,7 +459,7 @@ const closeModal = () => {
 </script>
 
 <style scoped>
-.company-icon-large {
+.name-icon-large {
   width: 56px;
   height: 56px;
   display: flex;
@@ -471,7 +470,7 @@ const closeModal = () => {
   color: rgb(59, 130, 246);
 }
 
-.dark .company-icon-large {
+.dark .name-icon-large {
   background: linear-gradient(135deg, rgb(30, 58, 138), rgb(29, 78, 216));
   color: rgb(147, 197, 253);
 }

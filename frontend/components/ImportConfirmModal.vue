@@ -19,21 +19,21 @@
           <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
             <p class="text-xs text-red-600 dark:text-red-400 font-medium mb-1">Current Data (will be replaced)</p>
             <div class="text-sm text-red-700 dark:text-red-300">
-              <p>{{ currentStats.applications }} applications</p>
+              <p>{{ currentStats.items }} {{ itemLabelPlural.toLowerCase() }}</p>
               <p>{{ currentStats.stages }} stages</p>
             </div>
           </div>
           <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
             <p class="text-xs text-green-600 dark:text-green-400 font-medium mb-1">Import File</p>
             <div class="text-sm text-green-700 dark:text-green-300">
-              <p>{{ importStats.applications }} applications</p>
+              <p>{{ importStats.items }} {{ itemLabelPlural.toLowerCase() }}</p>
               <p>{{ importStats.stages }} stages</p>
             </div>
           </div>
         </div>
 
         <UAlert
-          v-if="currentStats.applications > 0"
+          v-if="currentStats.items > 0"
           color="amber"
           variant="soft"
           icon="i-heroicons-exclamation-triangle"
@@ -45,7 +45,7 @@
       <template #footer>
         <div class="flex justify-between">
           <UButton
-            v-if="currentStats.applications > 0"
+            v-if="currentStats.items > 0"
             color="gray"
             variant="ghost"
             icon="i-heroicons-arrow-down-tray"
@@ -68,8 +68,14 @@
 </template>
 
 <script setup lang="ts">
+const { settings } = useSettings()
+const itemLabelPlural = computed(() => {
+  const label = settings.value.itemLabel
+  return label.endsWith('s') ? label : label + 's'
+})
+
 interface Stats {
-  applications: number
+  items: number
   stages: number
 }
 

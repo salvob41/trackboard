@@ -1,6 +1,6 @@
-export interface Application {
+export interface Item {
     id: number | string
-    company: string
+    name: string
     stage: string
     notes?: string
     created_at: string
@@ -11,7 +11,7 @@ export interface Application {
 
 export interface InfoItem {
     id: number | string
-    application_id: number | string
+    item_id: number | string
     tag?: string | null
     content?: string | null
     event_type?: 'transition' | 'comment' | null
@@ -21,7 +21,7 @@ export interface InfoItem {
     created_at: string
 }
 
-export interface ApplicationWithInfoItems extends Application {
+export interface ItemWithInfoItems extends Item {
     info_items: InfoItem[]
 }
 
@@ -33,7 +33,13 @@ export interface Stage {
     order: number
 }
 
-export type ApplicationCreate = Omit<Application, 'id' | 'created_at' | 'updated_at' | 'last_event_preview'>
-export type ApplicationUpdate = Partial<ApplicationCreate>
-export type InfoItemCreate = Omit<InfoItem, 'id' | 'application_id' | 'created_at'>
+export interface Settings {
+    itemLabel: string
+    primaryFieldLabel: string
+    secondaryFieldLabel: string
+}
+
+export type ItemCreate = Omit<Item, 'id' | 'created_at' | 'updated_at' | 'last_event_preview'>
+export type ItemUpdate = Partial<ItemCreate>
+export type InfoItemCreate = Omit<InfoItem, 'id' | 'item_id' | 'created_at'>
 export type InfoItemUpdate = Partial<InfoItemCreate>

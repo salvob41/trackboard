@@ -76,18 +76,18 @@ const showConfirmModal = ref(false)
 const pendingImportData = ref<any>(null)
 
 const KEYS = {
-  applications: 'app-tracker:applications',
+  items: 'app-tracker:items',
   stages: 'app-tracker:stages',
   infoItems: 'app-tracker:info-items',
 }
 
 const currentStats = computed(() => ({
-  applications: JSON.parse(localStorage.getItem(KEYS.applications) || '[]').length,
+  items: JSON.parse(localStorage.getItem(KEYS.items) || '[]').length,
   stages: JSON.parse(localStorage.getItem(KEYS.stages) || '[]').length,
 }))
 
 const importStats = computed(() => ({
-  applications: pendingImportData.value?.applications?.length || 0,
+  items: pendingImportData.value?.items?.length || 0,
   stages: pendingImportData.value?.stages?.length || 0,
 }))
 
@@ -95,7 +95,7 @@ function handleExport() {
   const data = {
     version: 1,
     exportedAt: new Date().toISOString(),
-    applications: JSON.parse(localStorage.getItem(KEYS.applications) || '[]'),
+    items: JSON.parse(localStorage.getItem(KEYS.items) || '[]'),
     stages: JSON.parse(localStorage.getItem(KEYS.stages) || '[]'),
     infoItems: JSON.parse(localStorage.getItem(KEYS.infoItems) || '[]'),
   }
@@ -109,7 +109,6 @@ function handleExport() {
   a.click()
   URL.revokeObjectURL(url)
 
-  // Record backup
   recordBackup()
   toast.add({ title: 'Data exported successfully', color: 'green', icon: 'i-heroicons-check-circle' })
 }
@@ -127,10 +126,9 @@ async function handleFileSelect(event: Event) {
     const text = await file.text()
     const parsed = JSON.parse(text)
 
-    // Validate structure
     if (
       !('version' in parsed) ||
-      !('applications' in parsed) ||
+      !('items' in parsed) ||
       !('stages' in parsed) ||
       !('infoItems' in parsed)
     ) {
@@ -144,7 +142,7 @@ async function handleFileSelect(event: Event) {
     }
 
     if (
-      !Array.isArray(parsed.applications) ||
+      !Array.isArray(parsed.items) ||
       !Array.isArray(parsed.stages) ||
       !Array.isArray(parsed.infoItems)
     ) {
@@ -152,7 +150,6 @@ async function handleFileSelect(event: Event) {
       return
     }
 
-    // Store pending data and show confirmation
     pendingImportData.value = parsed
     showConfirmModal.value = true
   } catch {
@@ -167,7 +164,7 @@ function confirmImport() {
   if (!pendingImportData.value) return
 
   try {
-    localStorage.setItem(KEYS.applications, JSON.stringify(pendingImportData.value.applications))
+    localStorage.setItem(KEYS.items, JSON.stringify(pendingImportData.value.items))
     localStorage.setItem(KEYS.stages, JSON.stringify(pendingImportData.value.stages))
     localStorage.setItem(KEYS.infoItems, JSON.stringify(pendingImportData.value.infoItems))
     
@@ -188,9 +185,7 @@ function cancelImport() {
 
 function handleExportThenImport() {
   handleExport()
-  // Keep modal open so user can still import after exporting
 }
 
-// Expose export function for external calls
 defineExpose({ handleExport })
 </script>

@@ -99,6 +99,11 @@ import type { Stage } from '~/types'
 
 const config = useRuntimeConfig()
 const storageMode = config.public.storageMode
+const { settings } = useSettings()
+const itemLabelPlural = computed(() => {
+  const label = settings.value.itemLabel
+  return label.endsWith('s') ? label : label + 's'
+})
 
 const props = defineProps<{
   modelValue: boolean
@@ -183,7 +188,7 @@ const moveStage = async (index: number, direction: -1 | 1) => {
 }
 
 const confirmDelete = async (stage: Stage) => {
-    if (confirm(`Are you sure you want to delete "${stage.label}"? Applications in this stage might be hidden.`)) {
+    if (confirm(`Are you sure you want to delete "${stage.label}"? ${itemLabelPlural} in this stage might be hidden.`)) {
         if (stage.id) {
             await deleteStage(stage.id)
         }

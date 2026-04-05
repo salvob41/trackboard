@@ -221,7 +221,7 @@ export const storage = {
     return items.map(item => {
       const infoItems = allInfoItems
         .filter(i => String(i.item_id) === String(item.id))
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .sort((a, b) => new Date(b.event_date ?? b.created_at).getTime() - new Date(a.event_date ?? a.created_at).getTime())
       // Find latest transition for event preview
       const lastTransition = infoItems.find(i => i.event_type === 'transition')
       // Find latest comment (comment events or transitions with content)

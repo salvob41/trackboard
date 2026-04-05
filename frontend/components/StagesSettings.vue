@@ -182,7 +182,7 @@ const moveStage = async (index: number, direction: -1 | 1) => {
 }
 
 const confirmDelete = async (stage: Stage) => {
-    if (confirm(`Are you sure you want to delete "${stage.label}"? ${itemLabelPlural} in this stage might be hidden.`)) {
+    if (confirm(`Are you sure you want to delete "${stage.label}"? ${itemLabelPlural.value} in this stage might be hidden.`)) {
         if (stage.id) {
             await deleteStage(stage.id)
         }

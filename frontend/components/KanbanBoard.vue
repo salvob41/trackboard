@@ -102,9 +102,11 @@ watch(() => [props.items, props.stages], () => {
       const live = currentItemMap.get(item.id)
       return live && (
         live.name !== item.name ||
+        live.secondaryField !== item.secondaryField ||
         live.notes !== item.notes ||
         live.stage !== item.stage ||
-        live.last_event_preview !== item.last_event_preview
+        live.last_event_preview !== item.last_event_preview ||
+        live.last_comment_preview !== item.last_comment_preview
       )
     })
 

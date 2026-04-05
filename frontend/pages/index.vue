@@ -153,7 +153,7 @@ const isDark = computed(() => colorMode.value === 'dark')
 const toast = useToast()
 const { recordBackup, recordChange } = useBackup()
 const { settings, loadSettings } = useSettings()
-const { loadWorkspaces, activeWorkspace, exportWorkspace } = useWorkspaces()
+const { loadWorkspaces, activeWorkspace, exportWorkspace, workspaces } = useWorkspaces()
 
 const appTitle = computed(() => `${settings.value.itemLabel} Tracker`)
 const itemLabel = computed(() => settings.value.itemLabel)
@@ -351,7 +351,6 @@ const handleOnboardingComplete = () => {
 
 onMounted(() => {
   loadWorkspaces()
-  const workspaces = useWorkspaces().workspaces
   if (workspaces.value.length === 0) {
     needsOnboarding.value = true
     pending.value = false

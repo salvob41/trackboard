@@ -91,13 +91,9 @@
                     size="sm"
                     variant="outline"
                     @click="triggerFileInput"
-                    :disabled="(formData.images?.length || 0) >= (settings.maxImagesPerItem || 10)"
                   >
                     Add Image
                   </UButton>
-                  <span class="text-xs text-gray-500">
-                    {{ (formData.images?.length || 0) }}/{{ settings.maxImagesPerItem || 10 }}
-                  </span>
                 </div>
 
                 <input
@@ -226,29 +222,19 @@ const handleFileSelect = async (event: Event) => {
 }
 
 const addImages = async (files: File[]) => {
-  const maxImages = settings.value.maxImagesPerItem || 10
-  const currentCount = formData.value.images?.length || 0
-  
-  if (currentCount >= maxImages) {
-    toast.add({ title: `Maximum ${maxImages} images allowed`, color: 'amber' })
-    return
-  }
-  
-  const uniqueFiles = files.filter((file, index, self) => 
-    index === self.findIndex(f => f.name === file.name && f.size === file.size && f.type === file.type)
-  )
-  
-  const filesToProcess = uniqueFiles.slice(0, maxImages - currentCount)
-  
-  if (filesToProcess.length === 0) return
-  
   try {
-    const base64Images = await processFiles(filesToProcess)
     if (!formData.value.images) {
       formData.value.images = []
     }
-    formData.value.images.push(...base64Images)
-    toast.add({ title: `${base64Images.length} image(s) added`, color: 'green' })
+    
+    const existingImages = new Set(formData.value.images)
+    const base64Images = await processFiles(files)
+    const newImages = base64Images.filter(img => !existingImages.has(img))
+    
+    if (newImages.length > 0) {
+      formData.value.images.push(...newImages)
+      toast.add({ title: `${newImages.length} image(s) added`, color: 'green' })
+    }
   } catch (error) {
     toast.add({ title: 'Failed to process images', color: 'red' })
   }

@@ -9,11 +9,11 @@
       </template>
 
       <div class="space-y-8">
-        <!-- Current Workspace -->
+        <!-- Current Board -->
         <div>
           <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <UIcon name="i-heroicons-rectangle-stack" />
-            Current Workspace
+            Current Board
           </h3>
           <div class="space-y-3">
             <UFormGroup label="Name">
@@ -53,12 +53,12 @@
 
         <UDivider />
 
-        <!-- All Workspaces -->
+        <!-- All Boards -->
         <div>
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <UIcon name="i-heroicons-squares-2x2" />
-              Workspaces
+              Boards
             </h3>
             <UButton icon="i-heroicons-plus" size="xs" color="primary" variant="soft" @click="showCreate = true">
               New
@@ -173,7 +173,7 @@ const handleSwitch = (id: string) => {
 }
 
 const handleDelete = (id: string, name: string) => {
-  if (confirm(`Delete workspace "${name}"? All its data will be lost.`)) {
+  if (confirm(`Delete board "${name}"? All its data will be lost.`)) {
     deleteWorkspace(id)
     if (defaultWorkspaceId.value === id) {
       localStorage.removeItem('app-tracker:default-workspace')

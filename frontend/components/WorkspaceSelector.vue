@@ -11,11 +11,20 @@
     >
       {{ ws.name }}
     </button>
+    <button
+      class="px-2 py-1 rounded-md text-xs font-medium text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary transition-colors"
+      title="New Board"
+      @click="showCreate = true"
+    >
+      +
+    </button>
+    <WorkspaceCreateModal v-model="showCreate" />
   </div>
 </template>
 
 <script setup lang="ts">
 const { workspaces, activeWorkspace, switchWorkspace } = useWorkspaces()
+const showCreate = ref(false)
 
 const handleClick = (id: string) => {
   if (id !== activeWorkspace.value?.id) {

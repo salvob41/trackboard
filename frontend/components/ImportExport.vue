@@ -12,7 +12,7 @@
         <UIcon name="i-heroicons-arrow-down-tray" class="text-lg text-gray-500 mt-0.5" />
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Download Backup</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Save this workspace's data as a file</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Save this board's data as a file</p>
         </div>
         <UButton color="primary" variant="soft" size="sm" @click="handleExport">Download</UButton>
       </div>
@@ -20,8 +20,8 @@
       <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
         <UIcon name="i-heroicons-arrow-up-tray" class="text-lg text-gray-500 mt-0.5" />
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Import as New Workspace</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Load a backup file as a new workspace</p>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Import as New Board</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Load a backup file as a new board</p>
         </div>
         <UButton color="gray" variant="soft" size="sm" @click="triggerImport" :loading="importing">Browse...</UButton>
       </div>
@@ -90,7 +90,7 @@ async function handleFileSelect(event: Event) {
 
     // Import as new workspace
     const ws = importWorkspace(parsed)
-    toast.add({ title: `Imported as workspace "${ws.name}"`, color: 'green', icon: 'i-heroicons-check-circle' })
+    toast.add({ title: `Imported as board "${ws.name}"`, color: 'green', icon: 'i-heroicons-check-circle' })
     switchWorkspace(ws.id)
   } catch {
     toast.add({ title: 'Could not read file', color: 'red', icon: 'i-heroicons-x-circle' })

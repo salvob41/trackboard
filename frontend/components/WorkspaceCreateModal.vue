@@ -3,7 +3,7 @@
     <UCard>
       <template #header>
         <div class="flex justify-between items-center">
-          <h2 class="text-xl font-bold">{{ required ? 'Create Your First Board' : 'New Workspace' }}</h2>
+          <h2 class="text-xl font-bold">{{ required ? 'Create Your First Board' : 'New Board' }}</h2>
           <UButton v-if="!required" icon="i-heroicons-x-mark" color="gray" variant="ghost" @click="isOpen = false" />
         </div>
         <p v-if="required" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -12,7 +12,7 @@
       </template>
 
       <div class="space-y-5">
-        <UFormGroup label="Workspace Name" required>
+        <UFormGroup label="Board Name" required>
           <UInput v-model="name" placeholder="e.g. Job Hunt 2026" autofocus />
         </UFormGroup>
 
@@ -56,7 +56,7 @@
         <div class="flex justify-end gap-3">
           <UButton v-if="!required" color="gray" @click="isOpen = false">Cancel</UButton>
           <UButton color="primary" :disabled="!name.trim()" @click="handleCreate">
-            {{ required ? "Let's go!" : 'Create Workspace' }}
+            {{ required ? "Let's go!" : 'Create Board' }}
           </UButton>
         </div>
       </template>

@@ -165,6 +165,7 @@ const isEdit = computed(() => !!props.item)
 const loading = ref(false)
 const isDragging = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+let lastPasteTime = 0
 
 const stageOptions = computed(() => props.stages.map(stage => ({
   label: stage.label,
@@ -233,7 +234,13 @@ const addImages = async (files: File[]) => {
     return
   }
   
-  const filesToProcess = files.slice(0, maxImages - currentCount)
+  const uniqueFiles = files.filter((file, index, self) => 
+    index === self.findIndex(f => f.name === file.name && f.size === file.size && f.type === file.type)
+  )
+  
+  const filesToProcess = uniqueFiles.slice(0, maxImages - currentCount)
+  
+  if (filesToProcess.length === 0) return
   
   try {
     const base64Images = await processFiles(filesToProcess)
@@ -252,6 +259,9 @@ const handlePaste = async (event: ClipboardEvent) => {
   
   const files = extractPasteImages(event)
   if (files.length > 0) {
+    if (event.timeStamp === lastPasteTime) return
+    lastPasteTime = event.timeStamp
+    event.stopPropagation()
     await addImages(files)
   }
 }

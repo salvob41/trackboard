@@ -1,85 +1,20 @@
 # Application Tracker
 
-A clean, fast job application tracker with a Kanban-style board. Track your job applications across customizable stages — runs entirely in the browser with local storage, or with a full backend + PostgreSQL.
+A fast, privacy-first kanban board for tracking anything — job applications, sales leads, apartment hunting, projects, or whatever you need. Runs entirely in the browser with zero setup. No accounts, no servers, no data collection.
 
 ## Features
 
-- **Kanban Board** — Drag-and-drop applications across customizable stages (Wishlist, Applied, Interview, Rejected, or your own)
-- **Dual Storage Modes** — Use browser localStorage (zero setup) or a FastAPI + PostgreSQL backend
-- **Info Items & Timeline** — Attach comments, track stage transitions, and see activity history per application
-- **Backup & Restore** — Export/import your data as JSON; includes backup reminders after 7 days or 10 changes
-- **GitHub Pages Deployment** — Auto-deploys the local-storage version as a static site via GitHub Actions
-- **Stage Management** — Add, edit, reorder, and delete custom pipeline stages
+- **Kanban Board** — Drag-and-drop items across customizable stages with stage transition tracking
+- **Multi-Workspace** — Create independent boards from templates, each with its own items, stages, and settings
+- **5 Built-in Templates** — Job Application, Lead/Sales, Property, Project, or start from scratch with Custom
+- **Template-Based Onboarding** — First-time users pick a template to get started instantly
+- **Configurable Card Fields** — Each workspace has a primary field (e.g. "Company") and an optional secondary field (e.g. "Role", "Price") shown as a subtitle on cards
+- **Activity Timeline** — Track stage transitions, add comments, and attach tagged info to each item
+- **Backup & Restore** — Export/import workspaces as JSON files, with backup reminders after 7 days or 10 changes
 - **Dark Mode** — Full dark mode support via Nuxt UI
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Nuxt 3, Vue 3, Nuxt UI, Tailwind CSS, vue-draggable-plus |
-| Backend | FastAPI, SQLAlchemy 2, Pydantic 2, Alembic |
-| Database | PostgreSQL 16 |
-| Testing | Vitest (frontend) |
-| Deployment | Docker Compose, GitHub Pages (static) |
+- **100% Client-Side** — All data stays in your browser's localStorage. Nothing is sent anywhere.
 
 ## Quick Start
-
-### Option 1: Local Storage Only (no backend needed)
-
-The simplest way to run the app — everything is stored in your browser's localStorage.
-
-```bash
-cd frontend
-npm install
-NUXT_PUBLIC_STORAGE_MODE=local npm run dev
-```
-
-Open http://localhost:3000. That's it — no database, no backend.
-
-> **Note:** Data lives in your browser only. Use the built-in Backup & Restore feature to save your data.
-
-### Option 2: Docker Compose (full stack)
-
-Runs the frontend, backend, and PostgreSQL together.
-
-```bash
-cp .env.example .env        # review and adjust if needed
-docker-compose up -d
-```
-
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:8000 |
-| API Docs (Swagger) | http://localhost:8000/docs |
-| Health Check | http://localhost:8000/health |
-
-### Option 3: Local Development (full stack, no Docker)
-
-#### 1. Start PostgreSQL
-
-Use any local PostgreSQL instance. Default connection:
-
-```
-postgresql://apptracker:apptracker123@localhost:5432/apptracker
-```
-
-Or set `DATABASE_URL` in your environment.
-
-#### 2. Start the Backend
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-alembic upgrade head          # run database migrations
-uvicorn app.main:app --reload
-```
-
-Backend runs at http://localhost:8000.
-
-#### 3. Start the Frontend
 
 ```bash
 cd frontend
@@ -87,163 +22,100 @@ npm install
 npm run dev
 ```
 
-Frontend runs at http://localhost:3000 and connects to the backend at `http://localhost:8000` by default.
+Open http://localhost:3000. Pick a template, name your board, and start tracking.
 
-## Environment Variables
+> **Your data lives in your browser only.** Use the built-in export feature to back up your data or transfer it to another device.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `NUXT_PUBLIC_STORAGE_MODE` | `api` | `api` = use backend + PostgreSQL; `local` = browser localStorage only |
-| `NUXT_PUBLIC_API_BASE` | `http://localhost:8000` | Backend API URL (only used when storage mode is `api`) |
-| `NUXT_PUBLIC_BASE_URL` | `/` | Base URL path for the frontend (used for GitHub Pages: `/app-tracker/`) |
-| `DATABASE_URL` | `postgresql://apptracker:apptracker123@localhost:5432/apptracker` | PostgreSQL connection string |
-| `POSTGRES_USER` | `apptracker` | PostgreSQL user (Docker Compose) |
-| `POSTGRES_PASSWORD` | `apptracker123` | PostgreSQL password (Docker Compose) |
-| `POSTGRES_DB` | `apptracker` | PostgreSQL database name (Docker Compose) |
+## Tech Stack
 
-## Storage Architecture
+| Layer | Technology |
+|-------|-----------|
+| Framework | Nuxt 3, Vue 3 |
+| UI | Nuxt UI, Tailwind CSS |
+| Drag & Drop | vue-draggable-plus |
+| Storage | Browser localStorage |
+| Testing | Vitest |
+| Deployment | GitHub Pages (static) |
 
-The app uses an adapter pattern to swap between storage backends transparently:
+## Workspaces & Templates
 
-```
-useApplications() / useStages() / useInfoItems()
-         │
-    useStorage()  ──→  storageMode === 'local' ? localStorageAdapter : apiAdapter
-         │                        │                         │
-         │              browser localStorage        FastAPI + PostgreSQL
-```
+Each workspace is an isolated board with its own items, stages, settings, and backup state. Create as many as you need.
 
-Both adapters implement the same `StorageAdapter` interface, so all composables and components work identically regardless of storage mode.
+| Template | Stages | Primary Field | Secondary Field |
+|----------|--------|--------------|----------------|
+| Job Application | Wishlist, Applied, Interview, Rejected | Company | Role |
+| Lead / Sales | New, Contacted, Qualified, Won, Lost | Company | Contact |
+| Property | Saved, Viewing, Offer, Accepted, Rejected | Name | Price |
+| Project | Backlog, In Progress, Review, Done | Title | Owner |
+| Custom | (you define them) | Name | Details |
 
-## API Endpoints
-
-### Applications
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/applications` | List all applications |
-| `GET` | `/applications/{id}` | Get application with info items |
-| `POST` | `/applications` | Create application |
-| `PUT` | `/applications/{id}` | Update application |
-| `DELETE` | `/applications/{id}` | Delete application |
-
-### Stages
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/stages` | List all stages |
-| `POST` | `/stages` | Create stage |
-| `PATCH` | `/stages/{id}` | Update stage |
-| `DELETE` | `/stages/{id}` | Delete stage |
-
-### Info Items
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/applications/{id}/info-items/` | List info items for an application |
-| `POST` | `/applications/{id}/info-items/` | Create info item |
-| `PUT` | `/applications/{id}/info-items/{item_id}` | Update info item |
-| `DELETE` | `/applications/{id}/info-items/{item_id}` | Delete info item |
-
-### Utility
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/` | API info |
-| `GET` | `/health` | Health check |
-
-## Database Migrations
-
-Migrations are managed with Alembic (in `backend/alembic/versions/`):
-
-```bash
-cd backend
-
-# Apply all migrations
-alembic upgrade head
-
-# Create a new migration after model changes
-alembic revision --autogenerate -m "description"
-
-# Rollback one migration
-alembic downgrade -1
-```
-
-## Backup & Restore (Local Storage Mode)
-
-When running in `local` mode, your data lives only in the browser. The app includes:
-
-- **Export** — Downloads a `app-tracker-export-YYYY-MM-DD.json` file with all applications, stages, and info items
-- **Import** — Restores from a previously exported JSON file (with confirmation dialog and stats preview)
-- **Backup Reminders** — A banner appears after 7 days without a backup or after 10 changes
-
-## Static Site Generation (GitHub Pages)
-
-The GitHub Actions workflow (`.github/workflows/deploy.yml`) builds and deploys a static version on every push to `main`:
-
-```bash
-# Generate locally
-cd frontend
-NUXT_PUBLIC_STORAGE_MODE=local NUXT_PUBLIC_BASE_URL=/app-tracker/ npx nuxt generate
-```
-
-The static site uses local storage mode exclusively — no backend required.
+Settings are per-workspace — change labels, toggle the secondary field on cards, customize stages.
 
 ## Project Structure
 
 ```
-app-tracker/
-├── backend/
-│   ├── app/
-│   │   ├── main.py              # FastAPI app, CORS, router registration
-│   │   ├── database.py          # SQLAlchemy engine and session
-│   │   ├── models.py            # Application, ApplicationInfoItem, Stage
-│   │   ├── schemas.py           # Pydantic request/response models
-│   │   ├── crud.py              # Application CRUD operations
-│   │   ├── crud_stages.py       # Stage CRUD operations
-│   │   ├── crud_info_items.py   # Info item CRUD operations
-│   │   └── routers/             # FastAPI route handlers
-│   │       ├── applications.py
-│   │       ├── stages.py
-│   │       └── info_items.py
-│   ├── alembic/                 # Database migrations
-│   │   └── versions/            # Migration scripts (001–004)
-│   ├── alembic.ini
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── adapters/
-│   │   ├── api.ts               # REST API adapter (FastAPI backend)
-│   │   └── localStorage.ts     # Browser localStorage adapter
-│   ├── composables/
-│   │   ├── useStorage.ts        # Adapter selector based on storage mode
-│   │   ├── useApplications.ts   # Application operations
-│   │   ├── useStages.ts         # Stage operations
-│   │   ├── useInfoItems.ts      # Info item operations
-│   │   └── useBackup.ts         # Backup reminder logic
-│   ├── components/
-│   │   ├── KanbanBoard.vue      # Main board with drag-and-drop
-│   │   ├── ApplicationCard.vue  # Card in a kanban column
-│   │   ├── ApplicationDetail.vue
-│   │   ├── ApplicationForm.vue
-│   │   ├── StagesSettings.vue   # Stage management UI
-│   │   ├── ImportExport.vue     # Backup & restore
-│   │   ├── BackupReminder.vue
-│   │   ├── FirstVisitNotice.vue
-│   │   └── ...
-│   ├── types/
-│   │   ├── index.ts             # Application, Stage, InfoItem types
-│   │   └── storage.ts           # StorageAdapter interface
-│   ├── pages/
-│   │   └── index.vue
-│   ├── nuxt.config.ts
-│   ├── package.json
-│   └── Dockerfile
-├── .github/workflows/
-│   └── deploy.yml               # GitHub Pages deployment
-├── docker-compose.yml
-├── .env.example
-└── .gitignore
+frontend/
+├── adapters/
+│   └── localStorage.ts      # Workspace-aware storage API + migrations
+├── composables/
+│   ├── useItems.ts           # Item CRUD
+│   ├── useStages.ts          # Stage operations
+│   ├── useInfoItems.ts       # Activity/comment operations
+│   ├── useSettings.ts        # Per-workspace settings + presets
+│   ├── useWorkspaces.ts      # Workspace CRUD, switch, export/import
+│   └── useBackup.ts          # Backup reminder logic
+├── components/
+│   ├── KanbanBoard.vue       # Main board with drag-and-drop columns
+│   ├── ItemCard.vue          # Card with primary/secondary fields
+│   ├── ItemDetail.vue        # Full item view with activity timeline
+│   ├── ItemForm.vue          # Create/edit item modal
+│   ├── SettingsModal.vue     # Workspace settings + workspace management
+│   ├── StagesSettings.vue    # Stage management (add, edit, reorder, delete)
+│   ├── WorkspaceCreateModal.vue  # Template picker for new workspaces
+│   ├── WorkspaceSelector.vue # Header tabs for workspace switching
+│   ├── ImportExport.vue      # Backup & restore (v1/v2 compatible)
+│   └── ...
+├── config/
+│   └── templates.ts          # Built-in workspace templates
+├── types/
+│   └── index.ts              # Item, Stage, InfoItem, Settings, Workspace types
+├── utils/
+│   ├── linkify.ts            # XSS-safe URL linkification
+│   └── pluralize.ts          # Simple pluralization helper
+├── tests/
+│   ├── adapters/localStorage.test.ts  # Storage, workspace, import/export tests
+│   └── utils/linkify.test.ts          # Linkify tests (XSS, query params)
+├── pages/
+│   └── index.vue
+└── nuxt.config.ts
+```
+
+## Data Model
+
+```
+Workspace
+ ├── Items (name, secondaryField, stage, notes)
+ │    └── InfoItems (comments, transitions, tagged info)
+ ├── Stages (key, label, color, order)
+ └── Settings (itemLabel, primaryFieldLabel, secondaryFieldLabel, showSecondaryOnCard)
+```
+
+All data is stored per-workspace in localStorage under namespaced keys (`app-tracker:{workspaceId}:items`, etc.).
+
+## Import / Export
+
+- **Export** — Downloads a JSON file with all items, stages, info items, and settings for a workspace
+- **Import** — Creates a new workspace from a JSON file (supports both v1 and v2 formats)
+- **Backward Compatible** — v1 exports (with `applications` key) are automatically migrated to v2 format on import
+
+## Static Site Deployment (GitHub Pages)
+
+The GitHub Actions workflow builds and deploys on every push to `main`:
+
+```bash
+# Generate locally
+cd frontend
+NUXT_PUBLIC_BASE_URL=/app-tracker/ npx nuxt generate
 ```
 
 ## Testing
@@ -253,6 +125,8 @@ cd frontend
 npm run test          # run once
 npm run test:watch    # watch mode
 ```
+
+20 tests covering localStorage storage API, workspace isolation, import/export roundtrip, and linkify XSS safety.
 
 ## License
 

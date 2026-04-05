@@ -1,12 +1,10 @@
 interface ImageUploadOptions {
   maxDimension: number
-  maxSizeKb: number
   quality: number
 }
 
 const DEFAULT_OPTIONS: ImageUploadOptions = {
-  maxDimension: 1200,
-  maxSizeKb: 500,
+  maxDimension: 1000,
   quality: 0.8,
 }
 
@@ -47,14 +45,7 @@ export const useImageUpload = (options: Partial<ImageUploadOptions> = {}) => {
           
           ctx.drawImage(img, 0, 0, width, height)
           
-          const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
-          let quality = opts.quality
-          let base64 = canvas.toDataURL(mimeType, quality)
-          
-          while (base64.length > opts.maxSizeKb * 1024 * 1.37 && quality > 0.1) {
-            quality -= 0.1
-            base64 = canvas.toDataURL(mimeType, quality)
-          }
+          const base64 = canvas.toDataURL('image/webp', opts.quality)
           
           resolve(base64)
         }

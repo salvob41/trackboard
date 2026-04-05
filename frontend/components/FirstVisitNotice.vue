@@ -6,7 +6,7 @@
           <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
             <UIcon name="i-heroicons-information-circle" class="text-2xl text-blue-600 dark:text-blue-400" />
           </div>
-          <h2 class="text-xl font-bold">Welcome to Application Tracker</h2>
+          <h2 class="text-xl font-bold">Welcome to Trackboard</h2>
         </div>
       </template>
 

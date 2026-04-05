@@ -7,9 +7,9 @@
 
 <script setup lang="ts">
 useHead({
-  title: 'Application Tracker',
+  title: 'Trackboard',
   meta: [
-    { name: 'description', content: 'Track your job applications with a simple Kanban board' }
+    { name: 'description', content: 'Local-first kanban board for tracking anything — jobs, leads, properties, projects' }
   ]
 })
 </script>

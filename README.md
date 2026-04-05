@@ -1,6 +1,6 @@
 # Application Tracker
 
-A fast, privacy-first kanban board for tracking anything — job applications, sales leads, apartment hunting, projects, or whatever you need. Runs entirely in the browser with zero setup. No accounts, no servers, no data collection.
+A fast, local-first kanban board for tracking anything — job applications, sales leads, apartment hunting, projects, or whatever you need. Runs entirely in the browser with zero setup. No accounts, no servers, no data collection.
 
 ## Features
 

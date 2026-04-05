@@ -49,6 +49,12 @@
       </div>
 
       <div class="card-body">
+        <div v-if="settings.enableImages && item.images?.length" class="image-preview">
+          <img :src="item.images[0]" class="image-thumbnail" />
+          <div v-if="item.images.length > 1" class="image-count">
+            +{{ item.images.length - 1 }}
+          </div>
+        </div>
         <div v-if="item.last_event_preview" class="notes">
           <UIcon name="i-heroicons-bolt" class="notes-icon" />
           <p class="notes-text" v-html="linkify(item.last_event_preview)"></p>
@@ -251,6 +257,37 @@ const getAccentGradient = (stageKey: string) => {
 
 .card-body {
   margin-bottom: 12px;
+}
+
+.image-preview {
+  position: relative;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.image-thumbnail {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgb(229, 231, 235);
+}
+
+.dark .image-thumbnail {
+  border-color: rgb(55, 65, 81);
+}
+
+.image-count {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .notes,

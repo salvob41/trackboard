@@ -42,6 +42,57 @@
       </template>
 
       <div class="space-y-6">
+        <!-- Images Section -->
+        <div v-if="settings.enableImages && item.images?.length" class="detail-section">
+          <div class="section-header">
+            <UIcon name="i-heroicons-photo" class="text-lg" />
+            <h3 class="section-title">Images</h3>
+          </div>
+          <div class="section-content">
+            <div class="image-gallery">
+              <div 
+                v-for="(img, index) in item.images" 
+                :key="index"
+                class="image-thumbnail"
+                @click="openLightbox(index)"
+              >
+                <img :src="img" class="w-full h-full object-cover rounded-lg" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lightbox -->
+        <UModal v-model="showLightbox" :ui="{ width: 'max-w-4xl' }">
+          <div class="relative">
+            <UButton
+              icon="i-heroicons-x-mark"
+              color="gray"
+              variant="ghost"
+              class="absolute top-2 right-2 z-10"
+              @click="showLightbox = false"
+            />
+            <img 
+              v-if="lightboxIndex !== null && item.images?.[lightboxIndex]"
+              :src="item.images[lightboxIndex]"
+              class="w-full h-auto max-h-[80vh] object-contain"
+            />
+            <div v-if="item.images && item.images.length > 1" class="flex justify-center gap-2 p-4">
+              <UButton
+                icon="i-heroicons-chevron-left"
+                variant="ghost"
+                @click="prevImage"
+              />
+              <span class="text-sm text-gray-500">{{ (lightboxIndex || 0) + 1 }} / {{ item.images.length }}</span>
+              <UButton
+                icon="i-heroicons-chevron-right"
+                variant="ghost"
+                @click="nextImage"
+              />
+            </div>
+          </div>
+        </UModal>
+
         <!-- Notes Section -->
         <div class="detail-section">
           <div class="section-header">
@@ -302,6 +353,8 @@ const isOpen = computed({
 
 const fullItem = ref<ItemWithInfoItems | null>(null)
 const showAddForm = ref(false)
+const showLightbox = ref(false)
+const lightboxIndex = ref<number | null>(null)
 const editingItemId = ref<number | string | null>(null)
 const newItem = ref({ tag: '', content: '' })
 const addLoading = ref(false)
@@ -457,6 +510,27 @@ const handleDelete = () => {
 
 const closeModal = () => {
   isOpen.value = false
+}
+
+const openLightbox = (index: number) => {
+  lightboxIndex.value = index
+  showLightbox.value = true
+}
+
+const prevImage = () => {
+  if (lightboxIndex.value !== null && item.value?.images) {
+    lightboxIndex.value = lightboxIndex.value > 0 
+      ? lightboxIndex.value - 1 
+      : item.value.images.length - 1
+  }
+}
+
+const nextImage = () => {
+  if (lightboxIndex.value !== null && item.value?.images) {
+    lightboxIndex.value = lightboxIndex.value < item.value.images.length - 1 
+      ? lightboxIndex.value + 1 
+      : 0
+  }
 }
 </script>
 
@@ -651,5 +725,28 @@ const closeModal = () => {
 
 .dark .event-content {
   color: rgb(209, 213, 219);
+}
+
+.image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.image-thumbnail {
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid rgb(229, 231, 235);
+  transition: transform 0.2s;
+}
+
+.image-thumbnail:hover {
+  transform: scale(1.05);
+}
+
+.dark .image-thumbnail {
+  border-color: rgb(55, 65, 81);
 }
 </style>

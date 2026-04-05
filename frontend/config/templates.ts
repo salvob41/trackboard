@@ -40,7 +40,7 @@ export const WORKSPACE_TEMPLATES: WorkspaceTemplate[] = [
       { key: 'accepted', label: 'Accepted', color: 'green', order: 4 },
       { key: 'rejected', label: 'Rejected', color: 'red', order: 5 },
     ],
-    settings: { itemLabel: 'Property', primaryFieldLabel: 'Name', secondaryFieldLabel: 'Price', showSecondaryOnCard: true },
+    settings: { itemLabel: 'Property', primaryFieldLabel: 'Name', secondaryFieldLabel: 'Price', showSecondaryOnCard: true, enableImages: true },
   },
   {
     id: 'project',

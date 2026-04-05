@@ -4,6 +4,7 @@ export interface Item {
     secondaryField?: string
     stage: string
     notes?: string
+    images?: string[]
     created_at: string
     updated_at?: string
     last_event_preview?: string | null
@@ -39,6 +40,10 @@ export interface Settings {
     primaryFieldLabel: string
     secondaryFieldLabel: string
     showSecondaryOnCard: boolean
+    enableImages: boolean
+    maxImagesPerItem?: number
+    maxImageDimension?: number
+    maxImageSizeKb?: number
 }
 
 export type ItemCreate = Omit<Item, 'id' | 'created_at' | 'updated_at' | 'last_event_preview' | 'last_comment_preview'>

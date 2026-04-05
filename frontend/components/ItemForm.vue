@@ -104,6 +104,27 @@
                   </UButton>
                 </div>
 
+                <div class="flex items-center gap-2">
+                  <UInput
+                    v-model="imageUrl"
+                    placeholder="Paste image URL..."
+                    size="sm"
+                    class="flex-1"
+                    @keydown.enter.prevent="addImageFromUrl"
+                  />
+                  <UButton
+                    type="button"
+                    icon="i-heroicons-link"
+                    size="sm"
+                    variant="outline"
+                    :loading="fetchingUrl"
+                    :disabled="!imageUrl.trim()"
+                    @click="addImageFromUrl"
+                  >
+                    Fetch
+                  </UButton>
+                </div>
+
                 <input
                   ref="fileInputRef"
                   type="file"
@@ -171,6 +192,8 @@ const isEdit = computed(() => !!props.item)
 const loading = ref(false)
 const isDragging = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const imageUrl = ref('')
+const fetchingUrl = ref(false)
 let lastPasteTime = 0
 
 const stageOptions = computed(() => props.stages.map(stage => ({
@@ -257,6 +280,29 @@ const addImages = async (files: File[]) => {
 
 const removeImage = (index: number) => {
   formImages.value.splice(index, 1)
+}
+
+const addImageFromUrl = async () => {
+  const url = imageUrl.value.trim()
+  if (!url) return
+  fetchingUrl.value = true
+  try {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const contentType = response.headers.get('content-type') || ''
+    if (!contentType.startsWith('image/')) {
+      toast.add({ title: 'URL is not an image', color: 'red' })
+      return
+    }
+    const blob = await response.blob()
+    const file = new File([blob], 'url-image', { type: blob.type })
+    await addImages([file])
+    imageUrl.value = ''
+  } catch {
+    toast.add({ title: 'Could not fetch image from URL', color: 'red' })
+  } finally {
+    fetchingUrl.value = false
+  }
 }
 
 const handlePaste = async (event: ClipboardEvent) => {

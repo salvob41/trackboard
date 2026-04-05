@@ -6,6 +6,7 @@ const DEFAULT_SETTINGS: Settings = {
   primaryFieldLabel: 'Company',
   secondaryFieldLabel: 'Role',
   showSecondaryOnCard: true,
+  enableImages: true,
 }
 
 const ITEM_LABEL_PRESETS = [

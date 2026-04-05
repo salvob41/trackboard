@@ -67,7 +67,7 @@
           <template v-if="settings.enableImages">
             <UFormGroup :label="'Images'" name="images">
               <div class="space-y-3">
-                <div v-if="(formImages.length > 0) || processingCount > 0" class="grid grid-cols-4 gap-2">
+                <div v-if="(formImages.length > 0) || pendingCount > 0" class="grid grid-cols-4 gap-2">
                   <div
                     v-for="(img, index) in formImages"
                     :key="'img-' + index"
@@ -77,6 +77,7 @@
                     <button
                       type="button"
                       class="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                      aria-label="Remove image"
                       @click="removeImage(index)"
                     >
                       ×
@@ -170,7 +171,6 @@ const isEdit = computed(() => !!props.item)
 const loading = ref(false)
 const isDragging = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
-const pendingImages = ref<Map<string, number>>(new Map())
 let lastPasteTime = 0
 
 const stageOptions = computed(() => props.stages.map(stage => ({
@@ -257,11 +257,11 @@ const removeImage = (index: number) => {
 
 const handlePaste = async (event: ClipboardEvent) => {
   if (!settings.value.enableImages) return
-  
   const files = extractPasteImages(event)
   if (files.length > 0) {
     if (event.timeStamp === lastPasteTime) return
     lastPasteTime = event.timeStamp
+    event.preventDefault()
     event.stopPropagation()
     await addImages(files)
   }

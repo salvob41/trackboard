@@ -54,7 +54,12 @@ function write<T>(key: string, data: T[]): void {
   try {
     localStorage.setItem(key, JSON.stringify(data))
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+    if (error instanceof DOMException && (
+      error.name === 'QuotaExceededError' ||
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      error.code === 22 ||
+      error.code === 1014
+    )) {
       throw new StorageQuotaExceededError()
     }
     throw error
@@ -74,7 +79,12 @@ function writeItem<T>(key: string, data: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(data))
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+    if (error instanceof DOMException && (
+      error.name === 'QuotaExceededError' ||
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      error.code === 22 ||
+      error.code === 1014
+    )) {
       throw new StorageQuotaExceededError()
     }
     throw error

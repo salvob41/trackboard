@@ -12,7 +12,7 @@ export const WORKSPACE_TEMPLATES: WorkspaceTemplate[] = [
       { key: 'interview', label: 'Interview', color: 'yellow', order: 3 },
       { key: 'rejected', label: 'Rejected', color: 'red', order: 4 },
     ],
-    settings: { itemLabel: 'Application', primaryFieldLabel: 'Company', secondaryFieldLabel: 'Role', showSecondaryOnCard: true },
+    settings: { itemLabel: 'Application', primaryFieldLabel: 'Company', secondaryFieldLabel: 'Role', showSecondaryOnCard: true, enableImages: true },
   },
   {
     id: 'lead-sales',
@@ -26,7 +26,7 @@ export const WORKSPACE_TEMPLATES: WorkspaceTemplate[] = [
       { key: 'won', label: 'Won', color: 'green', order: 4 },
       { key: 'lost', label: 'Lost', color: 'red', order: 5 },
     ],
-    settings: { itemLabel: 'Lead', primaryFieldLabel: 'Company', secondaryFieldLabel: 'Contact', showSecondaryOnCard: true },
+    settings: { itemLabel: 'Lead', primaryFieldLabel: 'Company', secondaryFieldLabel: 'Contact', showSecondaryOnCard: true, enableImages: true },
   },
   {
     id: 'property',
@@ -53,7 +53,7 @@ export const WORKSPACE_TEMPLATES: WorkspaceTemplate[] = [
       { key: 'review', label: 'Review', color: 'yellow', order: 3 },
       { key: 'done', label: 'Done', color: 'green', order: 4 },
     ],
-    settings: { itemLabel: 'Project', primaryFieldLabel: 'Title', secondaryFieldLabel: 'Owner', showSecondaryOnCard: false },
+    settings: { itemLabel: 'Project', primaryFieldLabel: 'Title', secondaryFieldLabel: 'Owner', showSecondaryOnCard: false, enableImages: true },
   },
   {
     id: 'custom',
@@ -61,6 +61,6 @@ export const WORKSPACE_TEMPLATES: WorkspaceTemplate[] = [
     description: 'Start with a blank board and define your own stages',
     icon: 'i-heroicons-cog-6-tooth',
     stages: [],
-    settings: { itemLabel: 'Item', primaryFieldLabel: 'Name', secondaryFieldLabel: 'Details', showSecondaryOnCard: false },
+    settings: { itemLabel: 'Item', primaryFieldLabel: 'Name', secondaryFieldLabel: 'Details', showSecondaryOnCard: false, enableImages: true },
   },
 ]

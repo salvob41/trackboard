@@ -110,16 +110,17 @@ const formatDate = (date: string) => {
 
 const { stages } = useStages()
 const { settings } = useSettings()
-const { getFirstImage, getImageCount } = useImageStore()
+const { getImagePreview } = useImageStore()
 
 const thumbnail = ref<string | null>(null)
 const imageCount = ref(0)
 
-// Load thumbnail and count from IndexedDB whenever item ID changes
+// Load thumbnail and count in a single IndexedDB round trip whenever item ID changes
 watch(() => props.item.id, async (id) => {
   if (settings.value.enableImages) {
-    thumbnail.value = await getFirstImage(id)
-    imageCount.value = await getImageCount(id)
+    const preview = await getImagePreview(id)
+    thumbnail.value = preview.thumbnail
+    imageCount.value = preview.count
   }
 }, { immediate: true })
 

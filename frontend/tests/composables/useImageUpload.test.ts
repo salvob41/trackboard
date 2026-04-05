@@ -1,141 +1,85 @@
 import { describe, it, expect } from 'vitest'
+import { useImageUpload } from '../../composables/useImageUpload'
 
-describe('Image paste handling', () => {
-  it('should extract image file from clipboard event', () => {
-    const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
-    const mockItem = {
-      type: 'image/png',
-      getAsFile: () => mockFile,
-    }
-    
-    const mockEvent = {
-      clipboardData: {
-        items: [mockItem],
-      },
-    } as unknown as ClipboardEvent
-    
-    const handlePaste = (event: ClipboardEvent): File[] => {
-      const items = event.clipboardData?.items
-      if (!items) return []
-      
-      const files: File[] = []
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          const file = item.getAsFile()
-          if (file) files.push(file)
-        }
-      }
-      return files
-    }
-    
-    const files = handlePaste(mockEvent)
-    expect(files).toHaveLength(1)
-    expect(files[0]).toBe(mockFile)
+describe('useImageUpload', () => {
+  const { handlePaste, handleDrop, validateFile } = useImageUpload()
+
+  describe('handlePaste', () => {
+    it('extracts image files from clipboard event', () => {
+      const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
+      const event = {
+        clipboardData: {
+          items: [{ type: 'image/png', getAsFile: () => mockFile }],
+        },
+      } as unknown as ClipboardEvent
+
+      const files = handlePaste(event)
+      expect(files).toHaveLength(1)
+      expect(files[0]).toBe(mockFile)
+    })
+
+    it('returns empty array when no image items', () => {
+      const event = {
+        clipboardData: {
+          items: [{ type: 'text/plain', getAsFile: () => null }],
+        },
+      } as unknown as ClipboardEvent
+
+      expect(handlePaste(event)).toHaveLength(0)
+    })
+
+    it('returns empty array when no clipboard data', () => {
+      const event = { clipboardData: null } as unknown as ClipboardEvent
+      expect(handlePaste(event)).toHaveLength(0)
+    })
+
+    it('extracts multiple image files', () => {
+      const file1 = new File(['a'], 'a.png', { type: 'image/png' })
+      const file2 = new File(['b'], 'b.jpg', { type: 'image/jpeg' })
+      const event = {
+        clipboardData: {
+          items: [
+            { type: 'image/png', getAsFile: () => file1 },
+            { type: 'image/jpeg', getAsFile: () => file2 },
+          ],
+        },
+      } as unknown as ClipboardEvent
+
+      expect(handlePaste(event)).toHaveLength(2)
+    })
   })
 
-  it('should return empty array when no image items', () => {
-    const mockItem = {
-      type: 'text/plain',
-      getAsFile: () => null,
-    }
-    
-    const mockEvent = {
-      clipboardData: {
-        items: [mockItem],
-      },
-    } as unknown as ClipboardEvent
-    
-    const handlePaste = (event: ClipboardEvent): File[] => {
-      const items = event.clipboardData?.items
-      if (!items) return []
-      
-      const files: File[] = []
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          const file = item.getAsFile()
-          if (file) files.push(file)
-        }
-      }
-      return files
-    }
-    
-    const files = handlePaste(mockEvent)
-    expect(files).toHaveLength(0)
+  describe('handleDrop', () => {
+    it('extracts image files from drag event', () => {
+      const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
+      const event = {
+        dataTransfer: { files: [mockFile] },
+      } as unknown as DragEvent
+
+      const files = handleDrop(event)
+      expect(files).toHaveLength(1)
+    })
+
+    it('filters non-image files', () => {
+      const imgFile = new File(['img'], 'img.png', { type: 'image/png' })
+      const txtFile = new File(['txt'], 'doc.txt', { type: 'text/plain' })
+      const event = {
+        dataTransfer: { files: [imgFile, txtFile] },
+      } as unknown as DragEvent
+
+      expect(handleDrop(event)).toHaveLength(1)
+    })
   })
 
-  it('should return empty array when no clipboard data', () => {
-    const mockEvent = {
-      clipboardData: null,
-    } as unknown as ClipboardEvent
-    
-    const handlePaste = (event: ClipboardEvent): File[] => {
-      const items = event.clipboardData?.items
-      if (!items) return []
-      
-      const files: File[] = []
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          const file = item.getAsFile()
-          if (file) files.push(file)
-        }
-      }
-      return files
-    }
-    
-    const files = handlePaste(mockEvent)
-    expect(files).toHaveLength(0)
-  })
+  describe('validateFile', () => {
+    it('returns null for valid image', () => {
+      const file = new File(['test'], 'test.png', { type: 'image/png' })
+      expect(validateFile(file)).toBeNull()
+    })
 
-  it('should extract multiple image files', () => {
-    const mockFile1 = new File(['test1'], 'test1.png', { type: 'image/png' })
-    const mockFile2 = new File(['test2'], 'test2.jpg', { type: 'image/jpeg' })
-    
-    const mockEvent = {
-      clipboardData: {
-        items: [
-          { type: 'image/png', getAsFile: () => mockFile1 },
-          { type: 'image/jpeg', getAsFile: () => mockFile2 },
-        ],
-      },
-    } as unknown as ClipboardEvent
-    
-    const handlePaste = (event: ClipboardEvent): File[] => {
-      const items = event.clipboardData?.items
-      if (!items) return []
-      
-      const files: File[] = []
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          const file = item.getAsFile()
-          if (file) files.push(file)
-        }
-      }
-      return files
-    }
-    
-    const files = handlePaste(mockEvent)
-    expect(files).toHaveLength(2)
-  })
-})
-
-describe('Image addImages deduplication', () => {
-  it('should add exactly one image when paste event is processed once', async () => {
-    const images: string[] = []
-    
-    const processFiles = async (files: File[]): Promise<string[]> => {
-      return files.map(f => `processed-${f.name}`)
-    }
-    
-    const addImages = async (files: File[]) => {
-      const processed = await processFiles(files)
-      images.push(...processed)
-    }
-    
-    const mockFile = new File(['test-image-data'], 'test.png', { type: 'image/png' })
-    
-    await addImages([mockFile])
-    
-    expect(images).toHaveLength(1)
-    expect(images[0]).toBe('processed-test.png')
+    it('returns error for non-image', () => {
+      const file = new File(['test'], 'test.txt', { type: 'text/plain' })
+      expect(validateFile(file)).toBeTruthy()
+    })
   })
 })

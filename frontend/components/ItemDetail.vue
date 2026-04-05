@@ -50,14 +50,20 @@
           </div>
           <div class="section-content">
             <div class="image-gallery">
-              <div
+              <button
                 v-for="(img, index) in itemImages"
                 :key="index"
+                type="button"
                 class="image-thumbnail"
+                :aria-label="`Open image ${index + 1} of ${itemImages.length}`"
                 @click="openLightbox(index)"
               >
-                <img :src="img" class="w-full h-full object-cover rounded-lg" />
-              </div>
+                <img
+                  :src="img"
+                  :alt="`Image ${index + 1}`"
+                  class="w-full h-full object-cover rounded-lg"
+                />
+              </button>
             </div>
           </div>
         </div>

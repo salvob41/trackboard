@@ -147,6 +147,7 @@
 
 <script setup lang="ts">
 import type { Item, ItemCreate } from '~/types'
+import { StorageQuotaExceededError } from '~/adapters/localStorage'
 
 const { saveImages, deleteImages } = useImageStore()
 
@@ -243,15 +244,24 @@ const handleSubmit = async (data: ItemCreate, images: string[]) => {
       const created = await createItem(data)
       itemId = created.id
     }
-    // Persist images to IndexedDB after we have the stable item ID
-    await saveImages(itemId, images)
     showModal.value = false
     await loadItems(false)
-
     recordChange()
+    // Save images separately — item is already saved, so image failure is non-fatal
+    try {
+      await saveImages(itemId, images)
+    } catch (imgErr) {
+      console.error('Failed to save images:', imgErr)
+      toast.add({
+        title: 'Images could not be saved',
+        description: 'The item was saved, but images failed to store. Your browser storage may be full.',
+        color: 'amber',
+        icon: 'i-heroicons-exclamation-triangle',
+        timeout: 8000,
+      })
+    }
   } catch (e: any) {
-    console.error('Save error:', e?.constructor?.name, e?.name, e?.message)
-    if (e?.name === 'StorageQuotaExceededError' || e?.message?.includes('quota')) {
+    if (e instanceof StorageQuotaExceededError || e?.name === 'StorageQuotaExceededError') {
       toast.add({
         title: 'Storage Full',
         description: 'Your browser storage is full. Please delete some items or images to free up space.',
@@ -346,7 +356,11 @@ const handleConfirmDelete = async () => {
     }
 
     await deleteItem(id)
-    await deleteImages(id)  // Clean up IndexedDB images for deleted item
+    try {
+      await deleteImages(id)  // Clean up IndexedDB images for deleted item
+    } catch (imgErr) {
+      console.error('Failed to delete images for item:', id, imgErr)
+    }
     showDeleteModal.value = false
 
     recordChange()

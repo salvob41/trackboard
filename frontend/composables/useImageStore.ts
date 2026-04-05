@@ -8,6 +8,7 @@ export const useImageStore = () => {
   const saveImages = async (itemId: string | number, dataUrls: string[]): Promise<void> => {
     // Delete existing images first to handle count changes (e.g. user removed images)
     await deleteImages(itemId)
+    if (dataUrls.length === 0) return
     await Promise.all(
       dataUrls.map((dataUrl, i) => set(imageKey(itemId, i), dataUrl))
     )
@@ -32,14 +33,25 @@ export const useImageStore = () => {
     return (await get<string>(imageKey(itemId, 0))) || null
   }
 
+  // Combines count + first image in one logical unit to avoid two separate reactive triggers in card views
+  const getImagePreview = async (itemId: string | number): Promise<{ thumbnail: string | null, count: number }> => {
+    const count = (await get<number>(`img:${itemId}:count`)) || 0
+    if (count === 0) return { thumbnail: null, count: 0 }
+    const thumbnail = (await get<string>(imageKey(itemId, 0))) || null
+    return { thumbnail, count }
+  }
+
   const deleteImages = async (itemId: string | number): Promise<void> => {
     const count = await get<number>(`img:${itemId}:count`)
-    if (!count) return
-    await Promise.all(
-      Array.from({ length: count }, (_, i) => del(imageKey(itemId, i)))
-    )
+    // Use == null to distinguish "no record" (null/undefined) from 0 (explicitly zero images)
+    if (count == null) return
+    if (count > 0) {
+      await Promise.all(
+        Array.from({ length: count }, (_, i) => del(imageKey(itemId, i)))
+      )
+    }
     await del(`img:${itemId}:count`)
   }
 
-  return { saveImages, getImages, getImageCount, getFirstImage, deleteImages }
+  return { saveImages, getImages, getImageCount, getFirstImage, getImagePreview, deleteImages }
 }

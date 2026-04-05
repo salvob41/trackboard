@@ -76,7 +76,7 @@ describe('storage API (workspace-aware)', () => {
   it('saves and retrieves settings, merging with template defaults', () => {
     const ws = storage.createWorkspace('Test', 'job-application')
     storage.switchWorkspace(ws.id)
-    storage.saveSettings({ itemLabel: 'Job', primaryFieldLabel: 'Company', secondaryFieldLabel: 'Role', showSecondaryOnCard: false })
+    storage.saveSettings({ itemLabel: 'Job', primaryFieldLabel: 'Company', secondaryFieldLabel: 'Role', showSecondaryOnCard: false, enableImages: true })
     const settings = storage.getSettings()
     expect(settings.itemLabel).toBe('Job')
     expect(settings.showSecondaryOnCard).toBe(false)

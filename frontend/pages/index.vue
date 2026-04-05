@@ -245,9 +245,7 @@ const handleSubmit = async (data: ItemCreate, images: string[]) => {
       itemId = created.id
     }
     showModal.value = false
-    await loadItems(false)
-    recordChange()
-    // Save images separately — item is already saved, so image failure is non-fatal
+    // Save images before reloading items so card thumbnails load correctly
     try {
       await saveImages(itemId, images)
     } catch (imgErr) {
@@ -260,6 +258,8 @@ const handleSubmit = async (data: ItemCreate, images: string[]) => {
         timeout: 8000,
       })
     }
+    await loadItems(false)
+    recordChange()
   } catch (e: any) {
     if (e instanceof StorageQuotaExceededError || e?.name === 'StorageQuotaExceededError') {
       toast.add({

@@ -285,7 +285,7 @@ const handleUpdateStage = async (id: number | string, toStage: string, fromStage
   blockDetailForItemId.value = id
   const index = items.value.findIndex(i => i.id === id)
   if (index !== -1) {
-    items.value[index] = { ...items.value[index], stage: toStage }
+    items.value[index] = { ...items.value[index], stage: toStage, last_event_preview: `${fromStage} → ${toStage}` }
   }
   try {
     await updateItem(id, { stage: toStage })

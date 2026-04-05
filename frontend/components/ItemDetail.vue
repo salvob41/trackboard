@@ -42,6 +42,63 @@
       </template>
 
       <div class="space-y-6">
+        <!-- Images Section -->
+        <div v-if="settings.enableImages && itemImages.length" class="detail-section">
+          <div class="section-header">
+            <UIcon name="i-heroicons-photo" class="text-lg" />
+            <h3 class="section-title">Images</h3>
+          </div>
+          <div class="section-content">
+            <div class="image-gallery">
+              <button
+                v-for="(img, index) in itemImages"
+                :key="index"
+                type="button"
+                class="image-thumbnail"
+                :aria-label="`Open image ${index + 1} of ${itemImages.length}`"
+                @click="openLightbox(index)"
+              >
+                <img
+                  :src="img"
+                  :alt="`Image ${index + 1}`"
+                  class="w-full h-full object-cover rounded-lg"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lightbox -->
+        <UModal v-model="showLightbox" :ui="{ width: 'max-w-4xl' }">
+          <div class="relative">
+            <UButton
+              icon="i-heroicons-x-mark"
+              color="gray"
+              variant="ghost"
+              class="absolute top-2 right-2 z-10"
+              @click="showLightbox = false"
+            />
+            <img
+              v-if="lightboxIndex !== null && itemImages[lightboxIndex]"
+              :src="itemImages[lightboxIndex]"
+              class="w-full h-auto max-h-[80vh] object-contain"
+            />
+            <div v-if="itemImages.length > 1" class="flex justify-center gap-2 p-4">
+              <UButton
+                icon="i-heroicons-chevron-left"
+                variant="ghost"
+                @click="prevImage"
+              />
+              <span class="text-sm text-gray-500">{{ (lightboxIndex || 0) + 1 }} / {{ itemImages.length }}</span>
+              <UButton
+                icon="i-heroicons-chevron-right"
+                variant="ghost"
+                @click="nextImage"
+              />
+            </div>
+          </div>
+        </UModal>
+
         <!-- Notes Section -->
         <div class="detail-section">
           <div class="section-header">
@@ -294,6 +351,10 @@ const itemLabel = computed(() => settings.value.itemLabel)
 const { stages } = useStages()
 const { getItem } = useItems()
 const { createInfoItem, updateInfoItem, deleteInfoItem } = useInfoItems()
+const { getImages } = useImageStore()
+
+// Images loaded from IndexedDB on open — not stored in the Item type
+const itemImages = ref<string[]>([])
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -302,7 +363,28 @@ const isOpen = computed({
 
 const fullItem = ref<ItemWithInfoItems | null>(null)
 const showAddForm = ref(false)
+const showLightbox = ref(false)
+const lightboxIndex = ref<number | null>(null)
 const editingItemId = ref<number | string | null>(null)
+
+const handleLightboxKeydown = (e: KeyboardEvent) => {
+  if (!showLightbox.value) return
+  if (e.key === 'ArrowLeft') {
+    prevImage()
+  } else if (e.key === 'ArrowRight') {
+    nextImage()
+  } else if (e.key === 'Escape') {
+    showLightbox.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleLightboxKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleLightboxKeydown)
+})
 const newItem = ref({ tag: '', content: '' })
 const addLoading = ref(false)
 
@@ -330,11 +412,18 @@ watch([() => props.modelValue, () => props.item], async ([open, item]) => {
     } catch {
       fullItem.value = null
     }
+    // Load images from IndexedDB — they are no longer part of the Item object
+    try {
+      itemImages.value = await getImages(item.id)
+    } catch {
+      itemImages.value = []
+    }
     showAddForm.value = false
     editingItemId.value = null
     newItem.value = { tag: '', content: '' }
   } else {
     fullItem.value = null
+    itemImages.value = []
   }
 }, { immediate: true })
 
@@ -457,6 +546,27 @@ const handleDelete = () => {
 
 const closeModal = () => {
   isOpen.value = false
+}
+
+const openLightbox = (index: number) => {
+  lightboxIndex.value = index
+  showLightbox.value = true
+}
+
+const prevImage = () => {
+  if (lightboxIndex.value !== null && itemImages.value.length) {
+    lightboxIndex.value = lightboxIndex.value > 0
+      ? lightboxIndex.value - 1
+      : itemImages.value.length - 1
+  }
+}
+
+const nextImage = () => {
+  if (lightboxIndex.value !== null && itemImages.value.length) {
+    lightboxIndex.value = lightboxIndex.value < itemImages.value.length - 1
+      ? lightboxIndex.value + 1
+      : 0
+  }
 }
 </script>
 
@@ -651,5 +761,28 @@ const closeModal = () => {
 
 .dark .event-content {
   color: rgb(209, 213, 219);
+}
+
+.image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.image-thumbnail {
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid rgb(229, 231, 235);
+  transition: transform 0.2s;
+}
+
+.image-thumbnail:hover {
+  transform: scale(1.05);
+}
+
+.dark .image-thumbnail {
+  border-color: rgb(55, 65, 81);
 }
 </style>

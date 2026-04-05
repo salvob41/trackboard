@@ -39,6 +39,10 @@ export interface Settings {
     primaryFieldLabel: string
     secondaryFieldLabel: string
     showSecondaryOnCard: boolean
+    enableImages: boolean
+    maxImagesPerItem?: number
+    maxImageDimension?: number
+    maxImageSizeKb?: number
 }
 
 export type ItemCreate = Omit<Item, 'id' | 'created_at' | 'updated_at' | 'last_event_preview' | 'last_comment_preview'>

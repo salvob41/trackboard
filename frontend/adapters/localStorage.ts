@@ -17,6 +17,13 @@ import { WORKSPACE_TEMPLATES } from '~/config/templates'
 
 const REGISTRY_KEY = 'app-tracker:workspaces'
 
+export class StorageQuotaExceededError extends Error {
+  constructor(message = 'Storage quota exceeded. Please delete some items or images to free up space.') {
+    super(message)
+    this.name = 'StorageQuotaExceededError'
+  }
+}
+
 function keysFor(workspaceId: string) {
   return {
     items: `app-tracker:${workspaceId}:items`,
@@ -44,7 +51,19 @@ function read<T>(key: string): T[] {
 }
 
 function write<T>(key: string, data: T[]): void {
-  localStorage.setItem(key, JSON.stringify(data))
+  try {
+    localStorage.setItem(key, JSON.stringify(data))
+  } catch (error) {
+    if (error instanceof DOMException && (
+      error.name === 'QuotaExceededError' ||
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      error.code === 22 ||
+      error.code === 1014
+    )) {
+      throw new StorageQuotaExceededError()
+    }
+    throw error
+  }
 }
 
 function readItem<T>(key: string): T | null {
@@ -57,7 +76,19 @@ function readItem<T>(key: string): T | null {
 }
 
 function writeItem<T>(key: string, data: T): void {
-  localStorage.setItem(key, JSON.stringify(data))
+  try {
+    localStorage.setItem(key, JSON.stringify(data))
+  } catch (error) {
+    if (error instanceof DOMException && (
+      error.name === 'QuotaExceededError' ||
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      error.code === 22 ||
+      error.code === 1014
+    )) {
+      throw new StorageQuotaExceededError()
+    }
+    throw error
+  }
 }
 
 function uuid(): string {

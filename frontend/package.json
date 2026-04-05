@@ -15,6 +15,7 @@
     "dependencies": {
         "@nuxt/icon": "^1.0.0",
         "@nuxt/ui": "^2.14.0",
+        "idb-keyval": "^6.2.2",
         "nuxt": "^3.10.0",
         "vue": "^3.4.15",
         "vue-router": "^4.2.5"
@@ -22,6 +23,7 @@
     "devDependencies": {
         "@nuxtjs/tailwindcss": "^6.11.4",
         "@vitest/ui": "^4.1.0",
+        "fake-indexeddb": "^6.2.5",
         "jsdom": "^29.0.0",
         "vitest": "^4.1.0",
         "vue-draggable-plus": "^0.3.5"

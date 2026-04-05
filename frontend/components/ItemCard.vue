@@ -49,6 +49,12 @@
       </div>
 
       <div class="card-body">
+        <div v-if="settings.enableImages && thumbnail" class="image-preview">
+          <img :src="thumbnail" class="image-thumbnail" />
+          <div v-if="imageCount > 1" class="image-count">
+            +{{ imageCount - 1 }}
+          </div>
+        </div>
         <div v-if="item.last_event_preview" class="notes">
           <UIcon name="i-heroicons-bolt" class="notes-icon" />
           <p class="notes-text" v-html="linkify(item.last_event_preview)"></p>
@@ -104,6 +110,27 @@ const formatDate = (date: string) => {
 
 const { stages } = useStages()
 const { settings } = useSettings()
+const { getImagePreview } = useImageStore()
+
+const thumbnail = ref<string | null>(null)
+const imageCount = ref(0)
+
+// Load thumbnail and count in a single IndexedDB round trip whenever item ID changes
+watch(() => props.item.id, async (id) => {
+  if (!settings.value.enableImages) {
+    thumbnail.value = null
+    imageCount.value = 0
+    return
+  }
+  try {
+    const preview = await getImagePreview(id)
+    thumbnail.value = preview.thumbnail
+    imageCount.value = preview.count
+  } catch {
+    thumbnail.value = null
+    imageCount.value = 0
+  }
+}, { immediate: true })
 
 const getAccentGradient = (stageKey: string) => {
   const stage = stages.value.find(s => s.key === stageKey)
@@ -251,6 +278,37 @@ const getAccentGradient = (stageKey: string) => {
 
 .card-body {
   margin-bottom: 12px;
+}
+
+.image-preview {
+  position: relative;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.image-thumbnail {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgb(229, 231, 235);
+}
+
+.dark .image-thumbnail {
+  border-color: rgb(55, 65, 81);
+}
+
+.image-count {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .notes,

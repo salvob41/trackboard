@@ -147,6 +147,9 @@
 
 <script setup lang="ts">
 import type { Item, ItemCreate } from '~/types'
+import { StorageQuotaExceededError } from '~/adapters/localStorage'
+
+const { saveImages, deleteImages } = useImageStore()
 
 const colorMode = useColorMode()
 const isDark = computed(() => colorMode.value === 'dark')
@@ -227,23 +230,53 @@ const openEditFromDetail = (item: Item) => {
   showModal.value = true
 }
 
-const handleSubmit = async (data: ItemCreate) => {
+const handleSubmit = async (data: ItemCreate, images: string[]) => {
   try {
+    let itemId: string | number
     if (selectedItem.value) {
       const index = items.value.findIndex(i => i.id === selectedItem.value!.id)
       if (index !== -1) {
         items.value[index] = { ...items.value[index], ...data }
       }
       await updateItem(selectedItem.value.id, data)
+      itemId = selectedItem.value.id
     } else {
-      await createItem(data)
+      const created = await createItem(data)
+      itemId = created.id
     }
     showModal.value = false
+    // Save images before reloading items so card thumbnails load correctly
+    try {
+      await saveImages(itemId, images)
+    } catch (imgErr) {
+      console.error('Failed to save images:', imgErr)
+      toast.add({
+        title: 'Images could not be saved',
+        description: 'The item was saved, but images failed to store. Your browser storage may be full.',
+        color: 'amber',
+        icon: 'i-heroicons-exclamation-triangle',
+        timeout: 8000,
+      })
+    }
     await loadItems(false)
-    
     recordChange()
-  } catch (e) {
-    console.error('Failed to save item:', e)
+  } catch (e: any) {
+    if (e instanceof StorageQuotaExceededError || e?.name === 'StorageQuotaExceededError') {
+      toast.add({
+        title: 'Storage Full',
+        description: 'Your browser storage is full. Please delete some items or images to free up space.',
+        color: 'red',
+        icon: 'i-heroicons-exclamation-triangle',
+        timeout: 10000,
+      })
+    } else {
+      console.error('Failed to save item:', e)
+      toast.add({
+        title: 'Failed to save',
+        description: 'An error occurred while saving. Please try again.',
+        color: 'red',
+      })
+    }
     await loadItems()
   }
 }
@@ -252,7 +285,7 @@ const handleUpdateStage = async (id: number | string, toStage: string, fromStage
   blockDetailForItemId.value = id
   const index = items.value.findIndex(i => i.id === id)
   if (index !== -1) {
-    items.value[index] = { ...items.value[index], stage: toStage }
+    items.value[index] = { ...items.value[index], stage: toStage, last_event_preview: `${fromStage} → ${toStage}` }
   }
   try {
     await updateItem(id, { stage: toStage })
@@ -323,8 +356,13 @@ const handleConfirmDelete = async () => {
     }
 
     await deleteItem(id)
+    try {
+      await deleteImages(id)  // Clean up IndexedDB images for deleted item
+    } catch (imgErr) {
+      console.error('Failed to delete images for item:', id, imgErr)
+    }
     showDeleteModal.value = false
-    
+
     recordChange()
   } catch (e) {
     console.error('Failed to delete item:', e)

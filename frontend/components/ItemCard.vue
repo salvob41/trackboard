@@ -117,10 +117,18 @@ const imageCount = ref(0)
 
 // Load thumbnail and count in a single IndexedDB round trip whenever item ID changes
 watch(() => props.item.id, async (id) => {
-  if (settings.value.enableImages) {
+  if (!settings.value.enableImages) {
+    thumbnail.value = null
+    imageCount.value = 0
+    return
+  }
+  try {
     const preview = await getImagePreview(id)
     thumbnail.value = preview.thumbnail
     imageCount.value = preview.count
+  } catch {
+    thumbnail.value = null
+    imageCount.value = 0
   }
 }, { immediate: true })
 

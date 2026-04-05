@@ -18,7 +18,7 @@ export const useImageStore = () => {
 
   const getImages = async (itemId: string | number): Promise<string[]> => {
     const count = await get<number>(`img:${itemId}:count`)
-    if (!count) return []
+    if (count == null || count === 0) return []
     const images = await Promise.all(
       Array.from({ length: count }, (_, i) => get<string>(imageKey(itemId, i)))
     )

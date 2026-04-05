@@ -413,7 +413,11 @@ watch([() => props.modelValue, () => props.item], async ([open, item]) => {
       fullItem.value = null
     }
     // Load images from IndexedDB — they are no longer part of the Item object
-    itemImages.value = await getImages(item.id)
+    try {
+      itemImages.value = await getImages(item.id)
+    } catch {
+      itemImages.value = []
+    }
     showAddForm.value = false
     editingItemId.value = null
     newItem.value = { tag: '', content: '' }

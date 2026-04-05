@@ -14,11 +14,15 @@ export const useImageUpload = (options: Partial<ImageUploadOptions> = {}) => {
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
-      reader.onerror = reject
-      
+      reader.onerror = () => {
+        reject(new Error(reader.error?.message || 'Failed to read image file'))
+      }
+
       reader.onload = (e) => {
         const img = new Image()
-        img.onerror = reject
+        img.onerror = () => {
+          reject(new Error('Failed to load image for compression'))
+        }
         
         img.onload = () => {
           const canvas = document.createElement('canvas')
@@ -79,7 +83,14 @@ export const useImageUpload = (options: Partial<ImageUploadOptions> = {}) => {
   }
 
   const processFiles = async (files: File[]): Promise<string[]> => {
-    return Promise.all(files.map(f => compressImage(f)))
+    const results = await Promise.allSettled(files.map(f => compressImage(f)))
+    const failed = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected').length
+    if (failed > 0) {
+      console.warn(`Failed to process ${failed} image${failed === 1 ? '' : 's'}`)
+    }
+    return results
+      .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled')
+      .map(r => r.value)
   }
 
   const validateFile = (file: File): string | null => {

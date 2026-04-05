@@ -202,7 +202,11 @@ watch(() => props.item, async (item) => {
       notes: item.notes || '',
     }
     // Load existing images from IndexedDB for the edit form
-    formImages.value = await getImages(item.id)
+    try {
+      formImages.value = await getImages(item.id)
+    } catch {
+      formImages.value = []
+    }
   } else {
     formData.value = {
       name: '',

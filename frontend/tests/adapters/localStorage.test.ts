@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { storage } from '../../adapters/localStorage'
+import { storage, StorageQuotaExceededError } from '../../adapters/localStorage'
 
 function initTestWorkspace() {
   const id = crypto.randomUUID()
@@ -176,5 +176,24 @@ describe('export / import', () => {
 
     storage.deleteWorkspace(ws.id)
     expect(storage.getWorkspaces().find(w => w.id === ws.id)).toBeUndefined()
+  })
+})
+
+describe('StorageQuotaExceededError', () => {
+  it('has correct name and message', () => {
+    const error = new StorageQuotaExceededError()
+    expect(error.name).toBe('StorageQuotaExceededError')
+    expect(error.message).toContain('Storage quota exceeded')
+  })
+
+  it('can be caught and identified by name', () => {
+    const error = new StorageQuotaExceededError()
+    
+    try {
+      throw error
+    } catch (e: any) {
+      expect(e.name).toBe('StorageQuotaExceededError')
+      expect(e instanceof Error).toBe(true)
+    }
   })
 })

@@ -67,10 +67,10 @@
           <template v-if="settings.enableImages">
             <UFormGroup :label="'Images'" name="images">
               <div class="space-y-3">
-                <div v-if="formData.images && formData.images.length > 0" class="grid grid-cols-4 gap-2">
+                <div v-if="(formData.images && formData.images.length > 0) || processingCount > 0" class="grid grid-cols-4 gap-2">
                   <div 
                     v-for="(img, index) in formData.images" 
-                    :key="index"
+                    :key="'img-' + index"
                     class="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
                   >
                     <img :src="img" class="w-full h-full object-cover" />
@@ -81,6 +81,13 @@
                     >
                       ×
                     </button>
+                  </div>
+                  <div 
+                    v-for="(pending, index) in pendingList" 
+                    :key="'pending-' + index"
+                    class="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800"
+                  >
+                    <div class="image-skeleton"></div>
                   </div>
                 </div>
 
@@ -161,6 +168,7 @@ const isEdit = computed(() => !!props.item)
 const loading = ref(false)
 const isDragging = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const pendingImages = ref<Map<string, number>>(new Map())
 let lastPasteTime = 0
 
 const stageOptions = computed(() => props.stages.map(stage => ({
@@ -169,6 +177,9 @@ const stageOptions = computed(() => props.stages.map(stage => ({
 })))
 
 const defaultStage = computed(() => props.stages[0]?.key || '')
+
+const pendingCount = ref(0)
+const pendingList = computed(() => Array(pendingCount.value).fill(null))
 
 const formData = ref<ItemCreate & { images?: string[] }>({
   name: '',
@@ -204,12 +215,6 @@ watch(defaultStage, (val) => {
   }
 }, { immediate: true })
 
-const removeImage = (index: number) => {
-  if (formData.value.images) {
-    formData.value.images.splice(index, 1)
-  }
-}
-
 const triggerFileInput = () => {
   fileInputRef.value?.click()
 }
@@ -228,15 +233,26 @@ const addImages = async (files: File[]) => {
     }
     
     const existingImages = new Set(formData.value.images)
+    pendingCount.value = files.length
+    
     const base64Images = await processFiles(files)
     const newImages = base64Images.filter(img => !existingImages.has(img))
+    
+    pendingCount.value = 0
     
     if (newImages.length > 0) {
       formData.value.images.push(...newImages)
       toast.add({ title: `${newImages.length} image(s) added`, color: 'green' })
     }
   } catch (error) {
+    pendingCount.value = 0
     toast.add({ title: 'Failed to process images', color: 'red' })
+  }
+}
+
+const removeImage = (index: number) => {
+  if (formData.value.images) {
+    formData.value.images.splice(index, 1)
   }
 }
 
@@ -285,3 +301,38 @@ const closeModal = () => {
   isOpen.value = false
 }
 </script>
+
+<style scoped>
+.image-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgb(229, 231, 235) 0%,
+    rgb(243, 244, 246) 50%,
+    rgb(229, 231, 235) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .image-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(55, 65, 81) 0%,
+    rgb(75, 85, 99) 50%,
+    rgb(55, 65, 81) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+</style>

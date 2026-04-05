@@ -242,8 +242,24 @@ const handleSubmit = async (data: ItemCreate) => {
     await loadItems(false)
     
     recordChange()
-  } catch (e) {
-    console.error('Failed to save item:', e)
+  } catch (e: any) {
+    console.error('Save error:', e?.constructor?.name, e?.name, e?.message)
+    if (e?.name === 'StorageQuotaExceededError' || e?.message?.includes('quota')) {
+      toast.add({
+        title: 'Storage Full',
+        description: 'Your browser storage is full. Please delete some items or images to free up space.',
+        color: 'red',
+        icon: 'i-heroicons-exclamation-triangle',
+        timeout: 10000,
+      })
+    } else {
+      console.error('Failed to save item:', e)
+      toast.add({
+        title: 'Failed to save',
+        description: 'An error occurred while saving. Please try again.',
+        color: 'red',
+      })
+    }
     await loadItems()
   }
 }

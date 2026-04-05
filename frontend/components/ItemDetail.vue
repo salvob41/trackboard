@@ -356,6 +356,25 @@ const showAddForm = ref(false)
 const showLightbox = ref(false)
 const lightboxIndex = ref<number | null>(null)
 const editingItemId = ref<number | string | null>(null)
+
+const handleLightboxKeydown = (e: KeyboardEvent) => {
+  if (!showLightbox.value) return
+  if (e.key === 'ArrowLeft') {
+    prevImage()
+  } else if (e.key === 'ArrowRight') {
+    nextImage()
+  } else if (e.key === 'Escape') {
+    showLightbox.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleLightboxKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleLightboxKeydown)
+})
 const newItem = ref({ tag: '', content: '' })
 const addLoading = ref(false)
 

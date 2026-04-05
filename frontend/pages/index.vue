@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
     <ClientOnly>
-      <BackupReminder @export="handleQuickExport" />
+      <BackupReminder v-if="!needsOnboarding" @export="handleQuickExport" />
     </ClientOnly>
 
     <header class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -287,7 +287,7 @@ const handleCommentSave = async (comment: string) => {
     await updateInfoItem(itemId, eventItemId, { content: comment })
     const idx = items.value.findIndex(i => i.id === itemId)
     if (idx !== -1) {
-      items.value[idx] = { ...items.value[idx], last_event_preview: comment }
+      items.value[idx] = { ...items.value[idx], last_comment_preview: comment }
     }
   } finally {
     showCommentModal.value = false

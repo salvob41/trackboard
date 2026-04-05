@@ -13,7 +13,7 @@ export function useBackup() {
   const firstVisitAcknowledged = ref(true)
 
   const loadBackupState = () => {
-    if (import.meta.server) return
+    if (import.meta.server || !getActiveWorkspaceId()) return
 
     const stored = localStorage.getItem(backupKey())
     lastBackupDate.value = stored ? new Date(stored) : null
@@ -25,7 +25,7 @@ export function useBackup() {
   }
 
   const recordBackup = () => {
-    if (import.meta.server) return
+    if (import.meta.server || !getActiveWorkspaceId()) return
 
     const now = new Date()
     localStorage.setItem(backupKey(), now.toISOString())
@@ -35,7 +35,7 @@ export function useBackup() {
   }
 
   const recordChange = () => {
-    if (import.meta.server) return
+    if (import.meta.server || !getActiveWorkspaceId()) return
 
     const newCount = changesSinceBackup.value + 1
     localStorage.setItem(changesKey(), newCount.toString())
@@ -43,7 +43,7 @@ export function useBackup() {
   }
 
   const acknowledgeFirstVisit = () => {
-    if (import.meta.server) return
+    if (import.meta.server || !getActiveWorkspaceId()) return
 
     localStorage.setItem(firstVisitKey(), 'true')
     firstVisitAcknowledged.value = true

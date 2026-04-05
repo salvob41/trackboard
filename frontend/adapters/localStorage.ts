@@ -222,15 +222,19 @@ export const storage = {
       const infoItems = allInfoItems
         .filter(i => String(i.item_id) === String(item.id))
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      const lastActivity = infoItems[0]
+      // Find latest transition for event preview
+      const lastTransition = infoItems.find(i => i.event_type === 'transition')
+      // Find latest comment (comment events or transitions with content)
+      const lastComment = infoItems.find(i =>
+        (i.event_type === 'comment' && i.content) ||
+        (i.event_type === 'transition' && i.content)
+      )
       return {
         ...item,
-        last_event_preview: lastActivity
-          ? lastActivity.event_type === 'transition'
-            ? `${lastActivity.from_stage} → ${lastActivity.to_stage}`
-            : lastActivity.content || null
+        last_event_preview: lastTransition
+          ? `${lastTransition.from_stage} → ${lastTransition.to_stage}`
           : null,
-        last_comment_preview: lastActivity?.content || null,
+        last_comment_preview: lastComment?.content || null,
       }
     })
   },

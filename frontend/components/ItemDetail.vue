@@ -43,15 +43,15 @@
 
       <div class="space-y-6">
         <!-- Images Section -->
-        <div v-if="settings.enableImages && item.images?.length" class="detail-section">
+        <div v-if="settings.enableImages && itemImages.length" class="detail-section">
           <div class="section-header">
             <UIcon name="i-heroicons-photo" class="text-lg" />
             <h3 class="section-title">Images</h3>
           </div>
           <div class="section-content">
             <div class="image-gallery">
-              <div 
-                v-for="(img, index) in item.images" 
+              <div
+                v-for="(img, index) in itemImages"
                 :key="index"
                 class="image-thumbnail"
                 @click="openLightbox(index)"
@@ -72,18 +72,18 @@
               class="absolute top-2 right-2 z-10"
               @click="showLightbox = false"
             />
-            <img 
-              v-if="lightboxIndex !== null && item.images?.[lightboxIndex]"
-              :src="item.images[lightboxIndex]"
+            <img
+              v-if="lightboxIndex !== null && itemImages[lightboxIndex]"
+              :src="itemImages[lightboxIndex]"
               class="w-full h-auto max-h-[80vh] object-contain"
             />
-            <div v-if="item.images && item.images.length > 1" class="flex justify-center gap-2 p-4">
+            <div v-if="itemImages.length > 1" class="flex justify-center gap-2 p-4">
               <UButton
                 icon="i-heroicons-chevron-left"
                 variant="ghost"
                 @click="prevImage"
               />
-              <span class="text-sm text-gray-500">{{ (lightboxIndex || 0) + 1 }} / {{ item.images.length }}</span>
+              <span class="text-sm text-gray-500">{{ (lightboxIndex || 0) + 1 }} / {{ itemImages.length }}</span>
               <UButton
                 icon="i-heroicons-chevron-right"
                 variant="ghost"
@@ -345,6 +345,10 @@ const itemLabel = computed(() => settings.value.itemLabel)
 const { stages } = useStages()
 const { getItem } = useItems()
 const { createInfoItem, updateInfoItem, deleteInfoItem } = useInfoItems()
+const { getImages } = useImageStore()
+
+// Images loaded from IndexedDB on open — not stored in the Item type
+const itemImages = ref<string[]>([])
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -402,11 +406,14 @@ watch([() => props.modelValue, () => props.item], async ([open, item]) => {
     } catch {
       fullItem.value = null
     }
+    // Load images from IndexedDB — they are no longer part of the Item object
+    itemImages.value = await getImages(item.id)
     showAddForm.value = false
     editingItemId.value = null
     newItem.value = { tag: '', content: '' }
   } else {
     fullItem.value = null
+    itemImages.value = []
   }
 }, { immediate: true })
 
@@ -537,17 +544,17 @@ const openLightbox = (index: number) => {
 }
 
 const prevImage = () => {
-  if (lightboxIndex.value !== null && item.value?.images) {
-    lightboxIndex.value = lightboxIndex.value > 0 
-      ? lightboxIndex.value - 1 
-      : item.value.images.length - 1
+  if (lightboxIndex.value !== null && itemImages.value.length) {
+    lightboxIndex.value = lightboxIndex.value > 0
+      ? lightboxIndex.value - 1
+      : itemImages.value.length - 1
   }
 }
 
 const nextImage = () => {
-  if (lightboxIndex.value !== null && item.value?.images) {
-    lightboxIndex.value = lightboxIndex.value < item.value.images.length - 1 
-      ? lightboxIndex.value + 1 
+  if (lightboxIndex.value !== null && itemImages.value.length) {
+    lightboxIndex.value = lightboxIndex.value < itemImages.value.length - 1
+      ? lightboxIndex.value + 1
       : 0
   }
 }

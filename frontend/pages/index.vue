@@ -148,6 +148,8 @@
 <script setup lang="ts">
 import type { Item, ItemCreate } from '~/types'
 
+const { saveImages, deleteImages } = useImageStore()
+
 const colorMode = useColorMode()
 const isDark = computed(() => colorMode.value === 'dark')
 const toast = useToast()
@@ -227,20 +229,25 @@ const openEditFromDetail = (item: Item) => {
   showModal.value = true
 }
 
-const handleSubmit = async (data: ItemCreate) => {
+const handleSubmit = async (data: ItemCreate, images: string[]) => {
   try {
+    let itemId: string | number
     if (selectedItem.value) {
       const index = items.value.findIndex(i => i.id === selectedItem.value!.id)
       if (index !== -1) {
         items.value[index] = { ...items.value[index], ...data }
       }
       await updateItem(selectedItem.value.id, data)
+      itemId = selectedItem.value.id
     } else {
-      await createItem(data)
+      const created = await createItem(data)
+      itemId = created.id
     }
+    // Persist images to IndexedDB after we have the stable item ID
+    await saveImages(itemId, images)
     showModal.value = false
     await loadItems(false)
-    
+
     recordChange()
   } catch (e: any) {
     console.error('Save error:', e?.constructor?.name, e?.name, e?.message)
@@ -339,8 +346,9 @@ const handleConfirmDelete = async () => {
     }
 
     await deleteItem(id)
+    await deleteImages(id)  // Clean up IndexedDB images for deleted item
     showDeleteModal.value = false
-    
+
     recordChange()
   } catch (e) {
     console.error('Failed to delete item:', e)

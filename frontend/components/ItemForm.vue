@@ -67,9 +67,9 @@
           <template v-if="settings.enableImages">
             <UFormGroup :label="'Images'" name="images">
               <div class="space-y-3">
-                <div v-if="(formData.images && formData.images.length > 0) || processingCount > 0" class="grid grid-cols-4 gap-2">
-                  <div 
-                    v-for="(img, index) in formData.images" 
+                <div v-if="(formImages.length > 0) || processingCount > 0" class="grid grid-cols-4 gap-2">
+                  <div
+                    v-for="(img, index) in formImages"
                     :key="'img-' + index"
                     class="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
                   >
@@ -82,8 +82,8 @@
                       ×
                     </button>
                   </div>
-                  <div 
-                    v-for="(pending, index) in pendingList" 
+                  <div
+                    v-for="(pending, index) in pendingList"
                     :key="'pending-' + index"
                     class="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800"
                   >
@@ -148,12 +148,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  submit: [data: ItemCreate]
+  // Images are passed separately so the parent can save them after obtaining the item ID
+  submit: [data: ItemCreate, images: string[]]
 }>()
 
 const toast = useToast()
 const { settings } = useSettings()
 const { handlePaste: extractPasteImages, handleDrop: extractDropImages, processFiles } = useImageUpload()
+const { getImages } = useImageStore()
 
 const itemLabel = computed(() => settings.value.itemLabel)
 const primaryFieldLabel = computed(() => settings.value.primaryFieldLabel)
@@ -181,31 +183,34 @@ const defaultStage = computed(() => props.stages[0]?.key || '')
 const pendingCount = ref(0)
 const pendingList = computed(() => Array(pendingCount.value).fill(null))
 
-const formData = ref<ItemCreate & { images?: string[] }>({
+const formData = ref<ItemCreate>({
   name: '',
   secondaryField: '',
   stage: '',
   notes: '',
-  images: []
 })
 
-watch(() => props.item, (item) => {
+// In-memory images for preview during editing; only written to IndexedDB on submit
+const formImages = ref<string[]>([])
+
+watch(() => props.item, async (item) => {
   if (item) {
     formData.value = {
       name: item.name,
       secondaryField: item.secondaryField || '',
       stage: item.stage,
       notes: item.notes || '',
-      images: item.images || []
     }
+    // Load existing images from IndexedDB for the edit form
+    formImages.value = await getImages(item.id)
   } else {
     formData.value = {
       name: '',
       secondaryField: '',
       stage: defaultStage.value,
       notes: '',
-      images: []
     }
+    formImages.value = []
   }
 }, { immediate: true })
 
@@ -228,20 +233,16 @@ const handleFileSelect = async (event: Event) => {
 
 const addImages = async (files: File[]) => {
   try {
-    if (!formData.value.images) {
-      formData.value.images = []
-    }
-    
-    const existingImages = new Set(formData.value.images)
+    const existingImages = new Set(formImages.value)
     pendingCount.value = files.length
-    
+
     const base64Images = await processFiles(files)
     const newImages = base64Images.filter(img => !existingImages.has(img))
-    
+
     pendingCount.value = 0
-    
+
     if (newImages.length > 0) {
-      formData.value.images.push(...newImages)
+      formImages.value.push(...newImages)
       toast.add({ title: `${newImages.length} image(s) added`, color: 'green' })
     }
   } catch (error) {
@@ -251,9 +252,7 @@ const addImages = async (files: File[]) => {
 }
 
 const removeImage = (index: number) => {
-  if (formData.value.images) {
-    formData.value.images.splice(index, 1)
-  }
+  formImages.value.splice(index, 1)
 }
 
 const handlePaste = async (event: ClipboardEvent) => {
@@ -291,7 +290,8 @@ const onDrop = async (event: DragEvent) => {
 const handleSubmit = async () => {
   loading.value = true
   try {
-    emit('submit', formData.value)
+    // Pass images separately; parent saves them to IndexedDB after obtaining the item ID
+    emit('submit', formData.value, formImages.value)
   } finally {
     loading.value = false
   }

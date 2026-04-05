@@ -4,7 +4,6 @@ export interface Item {
     secondaryField?: string
     stage: string
     notes?: string
-    images?: string[]
     created_at: string
     updated_at?: string
     last_event_preview?: string | null

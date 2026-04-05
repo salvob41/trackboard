@@ -49,10 +49,10 @@
       </div>
 
       <div class="card-body">
-        <div v-if="settings.enableImages && item.images?.length" class="image-preview">
-          <img :src="item.images[0]" class="image-thumbnail" />
-          <div v-if="item.images.length > 1" class="image-count">
-            +{{ item.images.length - 1 }}
+        <div v-if="settings.enableImages && thumbnail" class="image-preview">
+          <img :src="thumbnail" class="image-thumbnail" />
+          <div v-if="imageCount > 1" class="image-count">
+            +{{ imageCount - 1 }}
           </div>
         </div>
         <div v-if="item.last_event_preview" class="notes">
@@ -110,6 +110,18 @@ const formatDate = (date: string) => {
 
 const { stages } = useStages()
 const { settings } = useSettings()
+const { getFirstImage, getImageCount } = useImageStore()
+
+const thumbnail = ref<string | null>(null)
+const imageCount = ref(0)
+
+// Load thumbnail and count from IndexedDB whenever item ID changes
+watch(() => props.item.id, async (id) => {
+  if (settings.value.enableImages) {
+    thumbnail.value = await getFirstImage(id)
+    imageCount.value = await getImageCount(id)
+  }
+}, { immediate: true })
 
 const getAccentGradient = (stageKey: string) => {
   const stage = stages.value.find(s => s.key === stageKey)

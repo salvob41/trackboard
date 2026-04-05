@@ -19,13 +19,13 @@
           v-if="(columns[stage.key] || []).length === 0" 
           class="empty-state absolute inset-0 flex items-center justify-center text-sm text-gray-400 pointer-events-none"
         >
-          No applications
+          No {{ itemLabelPlural.toLowerCase() }}
         </div>
 
         <VueDraggable
           v-if="columns[stage.key]"
           v-model="columns[stage.key]"
-          :group="{ name: 'applications' }"
+          :group="{ name: 'items' }"
           :animation="200"
           ghost-class="ghost-card"
           filter=".action-btn"
@@ -34,12 +34,12 @@
           @change="(event) => onColumnChange(event, stage.key)"
         >
           <div
-            v-for="app in columns[stage.key]"
-            :key="app.id"
+            v-for="item in columns[stage.key]"
+            :key="item.id"
             class="mb-3"
           >
-            <ApplicationCard 
-              :application="app"
+            <ItemCard 
+              :item="item"
               @edit="handleEdit"
               @delete="handleDelete"
               @click="handleClick"
@@ -52,37 +52,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
-import type { Application, Stage } from '~/types'
+import type { Item, Stage } from '~/types'
 
 const props = defineProps<{
-  applications: Application[]
+  items: Item[]
   stages: Stage[]
 }>()
 
 const emit = defineEmits<{
   updateStage: [id: number | string, toStage: string, fromStage: string]
-  edit: [application: Application]
+  edit: [item: Item]
   delete: [id: number | string]
-  click: [application: Application]
+  click: [item: Item]
 }>()
 
-// Local state for draggable columns
-const columns = ref<Record<string, Application[]>>({})
+import { pluralize } from '~/utils/pluralize'
 
-// Sync local columns with props
-watch(() => [props.applications, props.stages], () => {
-  const currentAppMap = new Map(props.applications.map(app => [app.id, app]))
+const { settings } = useSettings()
+const itemLabelPlural = computed(() => pluralize(settings.value.itemLabel))
+
+const columns = ref<Record<string, Item[]>>({})
+
+watch(() => [props.items, props.stages], () => {
+  const currentItemMap = new Map(props.items.map(item => [item.id, item]))
   
-  // 1. Ensure all stages exist in columns
   props.stages.forEach(stage => {
     if (!columns.value[stage.key]) {
       columns.value[stage.key] = []
     }
   })
 
-  // 2. Remove stages that no longer exist
   const stageKeys = new Set(props.stages.map(s => s.key))
   Object.keys(columns.value).forEach(key => {
     if (!stageKeys.has(key)) {
@@ -90,42 +91,41 @@ watch(() => [props.applications, props.stages], () => {
     }
   })
 
-  // 3. Update applications within columns surgically
   props.stages.forEach(stage => {
-    const appsInStage = props.applications.filter(app => app.stage === stage.key)
+    const itemsInStage = props.items.filter(item => item.stage === stage.key)
     const currentColumn = columns.value[stage.key]
 
-    // If lengths match and contents (ids) match in order, skip full replacement
-    const idsMatch = currentColumn.length === appsInStage.length && 
-                   currentColumn.every((app, i) => app.id === appsInStage[i].id)
+    const idsMatch = currentColumn.length === itemsInStage.length && 
+                   currentColumn.every((item, i) => item.id === itemsInStage[i].id)
     
-    // Check if any app's data has changed (shallow check)
-    const dataChanged = currentColumn.some(app => {
-      const live = currentAppMap.get(app.id)
+    const dataChanged = currentColumn.some(item => {
+      const live = currentItemMap.get(item.id)
       return live && (
-        live.company !== app.company ||
-        live.notes !== app.notes ||
-        live.stage !== app.stage ||
-        live.last_event_preview !== app.last_event_preview
+        live.name !== item.name ||
+        live.secondaryField !== item.secondaryField ||
+        live.notes !== item.notes ||
+        live.stage !== item.stage ||
+        live.last_event_preview !== item.last_event_preview ||
+        live.last_comment_preview !== item.last_comment_preview
       )
     })
 
     if (!idsMatch || dataChanged) {
-      columns.value[stage.key] = appsInStage
+      columns.value[stage.key] = itemsInStage
     }
   })
 }, { immediate: true, deep: true })
 
-const DRAG_DATA_KEY = 'application-tracker/app-id'
+const DRAG_DATA_KEY = 'application-tracker/item-id'
 
 const onNativeDrop = (e: DragEvent, stageKey: string) => {
   const idStr = e.dataTransfer?.getData(DRAG_DATA_KEY)
   if (!idStr) return
   const id = idStr
   if (!id) return
-  const app = props.applications.find(a => String(a.id) === id)
-  if (app && app.stage !== stageKey) {
-    emit('updateStage', id, stageKey, app.stage)
+  const item = props.items.find(a => String(a.id) === id)
+  if (item && item.stage !== stageKey) {
+    emit('updateStage', id, stageKey, item.stage)
   }
 }
 
@@ -133,23 +133,23 @@ const onColumnChange = (event: any, stageKey: string) => {
   if (event.added) {
     const newIndex = event.added.newIndex as number
     const column = columns.value[stageKey]
-    const app = column?.[newIndex] as Application | undefined
-    if (app && app.stage !== stageKey) {
-      emit('updateStage', app.id, stageKey, app.stage)
+    const item = column?.[newIndex] as Item | undefined
+    if (item && item.stage !== stageKey) {
+      emit('updateStage', item.id, stageKey, item.stage)
     }
   }
 }
 
-const handleEdit = (app: Application) => {
-  emit('edit', app)
+const handleEdit = (item: Item) => {
+  emit('edit', item)
 }
 
 const handleDelete = (id: number | string) => {
   emit('delete', id)
 }
 
-const handleClick = (app: Application) => {
-  emit('click', app)
+const handleClick = (item: Item) => {
+  emit('click', item)
 }
 </script>
 
@@ -189,7 +189,7 @@ const handleClick = (app: Application) => {
 }
 
 .column-content {
-  min-height: 100%; /* Ensure it fills the parent */
+  min-height: 100%;
   padding: 1rem;
 }
 
@@ -210,7 +210,6 @@ const handleClick = (app: Application) => {
   background-color: rgb(var(--color-gray-700));
 }
 
-/* Drag Styling */
 .ghost-card {
   opacity: 0.5;
   background: rgb(var(--color-gray-100));
@@ -222,7 +221,6 @@ const handleClick = (app: Application) => {
   border-color: rgb(var(--color-gray-600));
 }
 
-/* Enhancing the drop zone responsiveness */
 .sortable-drag {
   cursor: grabbing;
 }

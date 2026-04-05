@@ -1,24 +1,32 @@
 <template>
   <div 
-    class="application-card"
-    :class="`stage-${application.stage}`"
+    class="item-card"
+    :class="`stage-${item.stage}`"
     role="article"
-    :aria-label="application.company"
+    :aria-label="item.name"
     draggable="true"
-    @click="$emit('click', application)"
+    @click="$emit('click', item)"
     @dragstart="onDragStart"
   >
     <div 
       class="card-accent"
-      :style="{ background: getAccentGradient(application.stage) }"
+      :style="{ background: getAccentGradient(item.stage) }"
     ></div>
     <div class="card-content">
       <div class="card-header">
-        <div class="company-info">
-          <div class="company-icon">
+        <div class="name-info">
+          <div class="name-icon">
             <UIcon name="i-heroicons-building-office-2" class="text-lg" />
           </div>
-          <h3 class="company-name">{{ application.company }}</h3>
+          <div class="name-text">
+            <h3 class="name-title">{{ item.name }}</h3>
+            <p
+              v-if="settings.showSecondaryOnCard && item.secondaryField"
+              class="name-subtitle"
+            >
+              {{ item.secondaryField }}
+            </p>
+          </div>
         </div>
         <div class="card-actions">
           <UButton 
@@ -26,7 +34,7 @@
             size="xs" 
             color="gray" 
             variant="ghost"
-            @click.stop="$emit('edit', application)"
+            @click.stop="$emit('edit', item)"
             class="action-btn"
           />
           <UButton 
@@ -34,22 +42,22 @@
             size="xs" 
             color="red" 
             variant="ghost"
-            @click.stop="$emit('delete', application.id)"
+            @click.stop="$emit('delete', item.id)"
             class="action-btn"
           />
         </div>
       </div>
 
       <div class="card-body">
-        <div v-if="application.last_event_preview" class="notes">
+        <div v-if="item.last_event_preview" class="notes">
           <UIcon name="i-heroicons-bolt" class="notes-icon" />
-          <p class="notes-text">{{ application.last_event_preview }}</p>
+          <p class="notes-text" v-html="linkify(item.last_event_preview)"></p>
         </div>
-        <div v-if="application.last_comment_preview && application.last_comment_preview !== application.last_event_preview" class="notes">
+        <div v-if="item.last_comment_preview && item.last_comment_preview !== item.last_event_preview" class="notes">
           <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="notes-icon" />
-          <p class="notes-text">{{ application.last_comment_preview }}</p>
+          <p class="notes-text" v-html="linkify(item.last_comment_preview)"></p>
         </div>
-        <div v-if="!application.last_event_preview && !application.last_comment_preview" class="notes-empty">
+        <div v-if="!item.last_event_preview && !item.last_comment_preview" class="notes-empty">
           <UIcon name="i-heroicons-clock" class="notes-icon" />
           <p class="notes-text">No activity yet</p>
         </div>
@@ -58,7 +66,7 @@
       <div class="card-footer">
         <div class="date-badge">
           <UIcon name="i-heroicons-calendar" class="date-icon" />
-          <span class="date-text">{{ formatDate(application.created_at) }}</span>
+          <span class="date-text">{{ formatDate(item.created_at) }}</span>
         </div>
       </div>
     </div>
@@ -66,23 +74,24 @@
 </template>
 
 <script setup lang="ts">
-import type { Application } from '~/types'
+import type { Item } from '~/types'
+import { linkify } from '~/utils/linkify'
 
 const props = defineProps<{
-  application: Application
+  item: Item
 }>()
 
-const DRAG_DATA_KEY = 'application-tracker/app-id'
+const DRAG_DATA_KEY = 'application-tracker/item-id'
 
 const onDragStart = (e: DragEvent) => {
-  e.dataTransfer?.setData(DRAG_DATA_KEY, String(props.application.id))
+  e.dataTransfer?.setData(DRAG_DATA_KEY, String(props.item.id))
   e.dataTransfer && (e.dataTransfer.effectAllowed = 'move')
 }
 
 defineEmits<{
-  edit: [application: Application]
+  edit: [item: Item]
   delete: [id: number | string]
-  click: [application: Application]
+  click: [item: Item]
 }>()
 
 const formatDate = (date: string) => {
@@ -94,6 +103,7 @@ const formatDate = (date: string) => {
 }
 
 const { stages } = useStages()
+const { settings } = useSettings()
 
 const getAccentGradient = (stageKey: string) => {
   const stage = stages.value.find(s => s.key === stageKey)
@@ -116,7 +126,7 @@ const getAccentGradient = (stageKey: string) => {
 </script>
 
 <style scoped>
-.application-card {
+.item-card {
   position: relative;
   background: white;
   border-radius: 12px;
@@ -129,12 +139,12 @@ const getAccentGradient = (stageKey: string) => {
     0 1px 2px -1px rgba(0, 0, 0, 0.1);
 }
 
-.dark .application-card {
+.dark .item-card {
   background: rgb(31, 41, 55);
   border-color: rgb(55, 65, 81);
 }
 
-.application-card:hover {
+.item-card:hover {
   transform: translateY(-4px);
   box-shadow: 
     0 10px 15px -3px rgba(0, 0, 0, 0.1),
@@ -143,20 +153,18 @@ const getAccentGradient = (stageKey: string) => {
   border-color: rgb(59, 130, 246);
 }
 
-.application-card:active {
+.item-card:active {
   cursor: grabbing;
   transform: translateY(-2px) scale(0.98);
 }
 
-/* Stage-specific accent colors */
 .card-accent {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, rgb(156, 163, 175), rgb(209, 213, 219)); /* Default gray */
-  /* Dynamic color is set via style attribute */
+  background: linear-gradient(90deg, rgb(156, 163, 175), rgb(209, 213, 219));
 }
 
 .card-content {
@@ -171,15 +179,31 @@ const getAccentGradient = (stageKey: string) => {
   gap: 8px;
 }
 
-.company-info {
+.name-info {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.name-text {
   flex: 1;
   min-width: 0;
 }
 
-.company-icon {
+.name-subtitle {
+  font-size: 0.8125rem;
+  color: rgb(107, 114, 128);
+  margin: 2px 0 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark .name-subtitle {
+  color: rgb(156, 163, 175);
+}
+
+.name-icon {
   flex-shrink: 0;
   width: 36px;
   height: 36px;
@@ -191,12 +215,12 @@ const getAccentGradient = (stageKey: string) => {
   color: rgb(59, 130, 246);
 }
 
-.dark .company-icon {
+.dark .name-icon {
   background: linear-gradient(135deg, rgb(30, 58, 138), rgb(29, 78, 216));
   color: rgb(147, 197, 253);
 }
 
-.company-name {
+.name-title {
   font-size: 1.125rem;
   font-weight: 600;
   color: rgb(17, 24, 39);
@@ -206,7 +230,7 @@ const getAccentGradient = (stageKey: string) => {
   white-space: nowrap;
 }
 
-.dark .company-name {
+.dark .name-title {
   color: rgb(243, 244, 246);
 }
 
@@ -221,7 +245,7 @@ const getAccentGradient = (stageKey: string) => {
   transition: opacity 0.2s;
 }
 
-.application-card:hover .action-btn {
+.item-card:hover .action-btn {
   opacity: 1;
 }
 
@@ -321,4 +345,3 @@ const getAccentGradient = (stageKey: string) => {
   color: rgb(156, 163, 175);
 }
 </style>
-

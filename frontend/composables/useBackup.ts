@@ -1,8 +1,9 @@
-const BACKUP_KEY = 'app-tracker:last-backup'
-const FIRST_VISIT_KEY = 'app-tracker:first-visit-acknowledged'
-const CHANGES_KEY = 'app-tracker:changes-since-backup'
+import { getActiveWorkspaceId } from '~/adapters/localStorage'
 
-// Backup reminder thresholds
+function backupKey() { return `app-tracker:${getActiveWorkspaceId()}:last-backup` }
+function changesKey() { return `app-tracker:${getActiveWorkspaceId()}:changes-since-backup` }
+function firstVisitKey() { return `app-tracker:${getActiveWorkspaceId()}:first-visit-acknowledged` }
+
 const DAYS_THRESHOLD = 7
 const CHANGES_THRESHOLD = 10
 
@@ -12,39 +13,39 @@ export function useBackup() {
   const firstVisitAcknowledged = ref(true)
 
   const loadBackupState = () => {
-    if (import.meta.server) return
+    if (import.meta.server || !getActiveWorkspaceId()) return
 
-    const stored = localStorage.getItem(BACKUP_KEY)
+    const stored = localStorage.getItem(backupKey())
     lastBackupDate.value = stored ? new Date(stored) : null
 
-    const changes = localStorage.getItem(CHANGES_KEY)
+    const changes = localStorage.getItem(changesKey())
     changesSinceBackup.value = changes ? parseInt(changes, 10) : 0
 
-    firstVisitAcknowledged.value = localStorage.getItem(FIRST_VISIT_KEY) === 'true'
+    firstVisitAcknowledged.value = localStorage.getItem(firstVisitKey()) === 'true'
   }
 
   const recordBackup = () => {
-    if (import.meta.server) return
+    if (import.meta.server || !getActiveWorkspaceId()) return
 
     const now = new Date()
-    localStorage.setItem(BACKUP_KEY, now.toISOString())
-    localStorage.setItem(CHANGES_KEY, '0')
+    localStorage.setItem(backupKey(), now.toISOString())
+    localStorage.setItem(changesKey(), '0')
     lastBackupDate.value = now
     changesSinceBackup.value = 0
   }
 
   const recordChange = () => {
-    if (import.meta.server) return
+    if (import.meta.server || !getActiveWorkspaceId()) return
 
     const newCount = changesSinceBackup.value + 1
-    localStorage.setItem(CHANGES_KEY, newCount.toString())
+    localStorage.setItem(changesKey(), newCount.toString())
     changesSinceBackup.value = newCount
   }
 
   const acknowledgeFirstVisit = () => {
-    if (import.meta.server) return
+    if (import.meta.server || !getActiveWorkspaceId()) return
 
-    localStorage.setItem(FIRST_VISIT_KEY, 'true')
+    localStorage.setItem(firstVisitKey(), 'true')
     firstVisitAcknowledged.value = true
   }
 
@@ -56,15 +57,9 @@ export function useBackup() {
   })
 
   const shouldShowReminder = computed(() => {
-    // Never backed up and has been using the app
     if (!lastBackupDate.value && changesSinceBackup.value > 0) return true
-
-    // Too many days since backup
     if (daysSinceBackup.value !== null && daysSinceBackup.value >= DAYS_THRESHOLD) return true
-
-    // Too many changes since backup
     if (changesSinceBackup.value >= CHANGES_THRESHOLD) return true
-
     return false
   })
 
@@ -84,7 +79,6 @@ export function useBackup() {
     return lastBackupDate.value.toLocaleDateString()
   })
 
-  // Initialize on client
   onMounted(() => {
     loadBackupState()
   })

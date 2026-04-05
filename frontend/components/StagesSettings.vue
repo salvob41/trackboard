@@ -78,11 +78,8 @@
           Add Column
         </UButton>
 
-        <!-- Import/Export (local mode only) -->
-        <template v-if="storageMode === 'local'">
-          <UDivider class="my-2" />
-          <ImportExport />
-        </template>
+        <UDivider class="my-2" />
+        <ImportExport />
       </div>
 
       <template #footer>
@@ -97,8 +94,10 @@
 <script setup lang="ts">
 import type { Stage } from '~/types'
 
-const config = useRuntimeConfig()
-const storageMode = config.public.storageMode
+import { pluralize } from '~/utils/pluralize'
+
+const { settings } = useSettings()
+const itemLabelPlural = computed(() => pluralize(settings.value.itemLabel))
 
 const props = defineProps<{
   modelValue: boolean
@@ -183,7 +182,7 @@ const moveStage = async (index: number, direction: -1 | 1) => {
 }
 
 const confirmDelete = async (stage: Stage) => {
-    if (confirm(`Are you sure you want to delete "${stage.label}"? Applications in this stage might be hidden.`)) {
+    if (confirm(`Are you sure you want to delete "${stage.label}"? ${itemLabelPlural.value} in this stage might be hidden.`)) {
         if (stage.id) {
             await deleteStage(stage.id)
         }

@@ -8,39 +8,22 @@
     </div>
 
     <div class="space-y-3">
-      <!-- Download Backup -->
       <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
         <UIcon name="i-heroicons-arrow-down-tray" class="text-lg text-gray-500 mt-0.5" />
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Download Backup</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Save your data as a file to your computer</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Save this workspace's data as a file</p>
         </div>
-        <UButton
-          color="primary"
-          variant="soft"
-          size="sm"
-          @click="handleExport"
-        >
-          Download
-        </UButton>
+        <UButton color="primary" variant="soft" size="sm" @click="handleExport">Download</UButton>
       </div>
 
-      <!-- Restore from Backup -->
       <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
         <UIcon name="i-heroicons-arrow-up-tray" class="text-lg text-gray-500 mt-0.5" />
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Restore from Backup</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Load data from a previously saved file</p>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Import as New Workspace</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Load a backup file as a new workspace</p>
         </div>
-        <UButton
-          color="gray"
-          variant="soft"
-          size="sm"
-          @click="triggerImport"
-          :loading="importing"
-        >
-          Browse...
-        </UButton>
+        <UButton color="gray" variant="soft" size="sm" @click="triggerImport" :loading="importing">Browse...</UButton>
       </div>
     </div>
 
@@ -48,68 +31,20 @@
       Your data is stored in this browser only. Download a backup to keep your data safe or transfer to another device.
     </p>
 
-    <input
-      ref="fileInput"
-      type="file"
-      accept=".json"
-      class="hidden"
-      @change="handleFileSelect"
-    />
-
-    <ImportConfirmModal
-      v-model="showConfirmModal"
-      :current-stats="currentStats"
-      :import-stats="importStats"
-      @confirm="confirmImport"
-      @cancel="cancelImport"
-      @export-first="handleExportThenImport"
-    />
+    <input ref="fileInput" type="file" accept=".json" class="hidden" @change="handleFileSelect" />
   </div>
 </template>
 
 <script setup lang="ts">
 const toast = useToast()
 const { recordBackup, lastBackupFormatted } = useBackup()
+const { activeWorkspace, exportWorkspace, importWorkspace, switchWorkspace } = useWorkspaces()
 const fileInput = ref<HTMLInputElement | null>(null)
 const importing = ref(false)
-const showConfirmModal = ref(false)
-const pendingImportData = ref<any>(null)
-
-const KEYS = {
-  applications: 'app-tracker:applications',
-  stages: 'app-tracker:stages',
-  infoItems: 'app-tracker:info-items',
-}
-
-const currentStats = computed(() => ({
-  applications: JSON.parse(localStorage.getItem(KEYS.applications) || '[]').length,
-  stages: JSON.parse(localStorage.getItem(KEYS.stages) || '[]').length,
-}))
-
-const importStats = computed(() => ({
-  applications: pendingImportData.value?.applications?.length || 0,
-  stages: pendingImportData.value?.stages?.length || 0,
-}))
 
 function handleExport() {
-  const data = {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    applications: JSON.parse(localStorage.getItem(KEYS.applications) || '[]'),
-    stages: JSON.parse(localStorage.getItem(KEYS.stages) || '[]'),
-    infoItems: JSON.parse(localStorage.getItem(KEYS.infoItems) || '[]'),
-  }
-
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const date = new Date().toISOString().split('T')[0]
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `app-tracker-export-${date}.json`
-  a.click()
-  URL.revokeObjectURL(url)
-
-  // Record backup
+  if (!activeWorkspace.value) return
+  exportWorkspace(activeWorkspace.value.id)
   recordBackup()
   toast.add({ title: 'Data exported successfully', color: 'green', icon: 'i-heroicons-check-circle' })
 }
@@ -127,34 +62,36 @@ async function handleFileSelect(event: Event) {
     const text = await file.text()
     const parsed = JSON.parse(text)
 
-    // Validate structure
-    if (
-      !('version' in parsed) ||
-      !('applications' in parsed) ||
-      !('stages' in parsed) ||
-      !('infoItems' in parsed)
-    ) {
+    // Map v1 format (applications) to v2 (items)
+    if ('applications' in parsed && !('items' in parsed)) {
+      parsed.items = parsed.applications
+      delete parsed.applications
+    }
+
+    // Validate required arrays
+    if (!Array.isArray(parsed.items) || !Array.isArray(parsed.stages)) {
       toast.add({ title: 'Invalid file format', color: 'red', icon: 'i-heroicons-x-circle' })
       return
     }
 
-    if (parsed.version !== 1) {
-      toast.add({ title: 'Unsupported file version', color: 'red', icon: 'i-heroicons-x-circle' })
-      return
+    // Normalize optional fields
+    if (!Array.isArray(parsed.infoItems)) {
+      parsed.infoItems = []
+    } else {
+      // Migrate v1 infoItems: application_id → item_id
+      parsed.infoItems = parsed.infoItems.map((ii: any) => {
+        if ('application_id' in ii && !('item_id' in ii)) {
+          const { application_id, ...rest } = ii
+          return { ...rest, item_id: application_id }
+        }
+        return ii
+      })
     }
 
-    if (
-      !Array.isArray(parsed.applications) ||
-      !Array.isArray(parsed.stages) ||
-      !Array.isArray(parsed.infoItems)
-    ) {
-      toast.add({ title: 'Invalid file format', color: 'red', icon: 'i-heroicons-x-circle' })
-      return
-    }
-
-    // Store pending data and show confirmation
-    pendingImportData.value = parsed
-    showConfirmModal.value = true
+    // Import as new workspace
+    const ws = importWorkspace(parsed)
+    toast.add({ title: `Imported as workspace "${ws.name}"`, color: 'green', icon: 'i-heroicons-check-circle' })
+    switchWorkspace(ws.id)
   } catch {
     toast.add({ title: 'Could not read file', color: 'red', icon: 'i-heroicons-x-circle' })
   } finally {
@@ -163,34 +100,5 @@ async function handleFileSelect(event: Event) {
   }
 }
 
-function confirmImport() {
-  if (!pendingImportData.value) return
-
-  try {
-    localStorage.setItem(KEYS.applications, JSON.stringify(pendingImportData.value.applications))
-    localStorage.setItem(KEYS.stages, JSON.stringify(pendingImportData.value.stages))
-    localStorage.setItem(KEYS.infoItems, JSON.stringify(pendingImportData.value.infoItems))
-    
-    toast.add({ title: 'Data imported successfully', color: 'green', icon: 'i-heroicons-check-circle' })
-    window.location.reload()
-  } catch {
-    toast.add({ title: 'Import failed: storage quota exceeded', color: 'red', icon: 'i-heroicons-x-circle' })
-  } finally {
-    showConfirmModal.value = false
-    pendingImportData.value = null
-  }
-}
-
-function cancelImport() {
-  showConfirmModal.value = false
-  pendingImportData.value = null
-}
-
-function handleExportThenImport() {
-  handleExport()
-  // Keep modal open so user can still import after exporting
-}
-
-// Expose export function for external calls
 defineExpose({ handleExport })
 </script>

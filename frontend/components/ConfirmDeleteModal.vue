@@ -6,7 +6,7 @@
           <UIcon name="i-heroicons-trash" class="text-2xl" />
         </div>
         <div>
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white">Delete Application</h3>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white">Delete {{ itemLabel }}</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
             This action cannot be undone.
           </p>
@@ -14,7 +14,7 @@
       </div>
 
       <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-6 font-medium">
-        Are you sure you want to remove <span class="text-red-600 dark:text-red-400">{{ applicationName }}</span>?
+        Are you sure you want to remove <span class="text-red-600 dark:text-red-400">{{ itemName }}</span>?
       </div>
 
       <div class="flex justify-end gap-3">
@@ -39,9 +39,12 @@
 </template>
 
 <script setup lang="ts">
+const { settings } = useSettings()
+const itemLabel = computed(() => settings.value.itemLabel)
+
 const props = defineProps<{
   modelValue: boolean
-  applicationName: string
+  itemName: string
   loading?: boolean
 }>()
 

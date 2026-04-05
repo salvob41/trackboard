@@ -1,8 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
-    <!-- Backup Reminder Banner (local storage mode only) -->
-    <ClientOnly v-if="isLocalStorageMode">
-      <BackupReminder @export="handleQuickExport" />
+    <ClientOnly>
+      <BackupReminder v-if="!needsOnboarding" @export="handleQuickExport" />
     </ClientOnly>
 
     <header class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -10,7 +9,8 @@
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-3">
             <UIcon name="i-heroicons-briefcase" class="text-3xl text-primary" />
-            <h1 class="text-2xl font-bold">Application Tracker</h1>
+            <h1 class="text-2xl font-bold">{{ appTitle }}</h1>
+            <WorkspaceSelector class="ml-2" />
           </div>
           <div class="flex items-center gap-3">
             <UButton 
@@ -18,10 +18,9 @@
               @click="openCreateModal"
               size="lg"
             >
-              New Application
+              New {{ itemLabel }}
             </UButton>
-            <!-- Backup button (local storage mode only) -->
-            <UTooltip v-if="isLocalStorageMode" text="Download Backup">
+            <UTooltip text="Download Backup">
               <UButton
                 icon="i-heroicons-arrow-down-tray"
                 color="gray"
@@ -36,6 +35,12 @@
               color="gray"
               variant="ghost"
               @click="showStagesSettings = true"
+            />
+            <UButton
+              icon="i-heroicons-ellipsis-horizontal"
+              color="gray"
+              variant="ghost"
+              @click="showSettings = true"
             />
             <ClientOnly>
               <UButton
@@ -59,14 +64,14 @@
         <UAlert 
           color="red" 
           variant="soft"
-          title="Error loading applications"
+          title="Error loading items"
           :description="error.message"
         />
       </div>
 
       <KanbanBoard
         v-else
-        :applications="applications"
+        :items="items"
         :stages="stages"
         @update-stage="handleUpdateStage"
         @edit="openEditModal"
@@ -75,16 +80,16 @@
       />
     </main>
 
-    <ApplicationForm
+    <ItemForm
       v-model="showModal"
-      :application="selectedApplication"
+      :item="selectedItem"
       :stages="stages"
       @submit="handleSubmit"
     />
 
-    <ApplicationDetail
+    <ItemDetail
       v-model="showDetailModal"
-      :application="selectedApplicationDetail"
+      :item="selectedItemDetail"
       @edit="openEditFromDetail"
       @delete="handleDelete"
     />
@@ -94,9 +99,13 @@
       :stages="stages"
     />
 
+    <SettingsModal
+      v-model="showSettings"
+    />
+
     <ConfirmDeleteModal
       v-model="showDeleteModal"
-      :application-name="appToDelete?.company || ''"
+      :item-name="itemToDelete?.name || ''"
       :loading="deleteLoading"
       @confirm="handleConfirmDelete"
     />
@@ -108,14 +117,18 @@
       @skip="handleCommentSkip"
     />
 
-    <!-- First Visit Notice (local storage mode only) -->
-    <ClientOnly v-if="isLocalStorageMode">
-      <FirstVisitNotice />
+    <ClientOnly>
+      <FirstVisitNotice v-if="!needsOnboarding" />
+      <WorkspaceCreateModal
+        v-model="needsOnboarding"
+        :required="true"
+        @update:model-value="handleOnboardingComplete"
+      />
     </ClientOnly>
 
     <footer class="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 mt-auto">
       <div class="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-        <span class="text-sm text-gray-400 dark:text-gray-500">Application Tracker</span>
+        <span class="text-sm text-gray-400 dark:text-gray-500">{{ appTitle }}</span>
         <div class="flex items-center gap-4">
           <a
             href="https://github.com/salvob41/app-tracker"
@@ -133,57 +146,59 @@
 </template>
 
 <script setup lang="ts">
-import type { Application, ApplicationCreate, InfoItemCreate } from '~/types'
-
-const config = useRuntimeConfig()
-const isLocalStorageMode = config.public.storageMode === 'local'
+import type { Item, ItemCreate } from '~/types'
 
 const colorMode = useColorMode()
 const isDark = computed(() => colorMode.value === 'dark')
 const toast = useToast()
 const { recordBackup, recordChange } = useBackup()
+const { settings, loadSettings } = useSettings()
+const { loadWorkspaces, activeWorkspace, exportWorkspace, workspaces } = useWorkspaces()
+
+const appTitle = computed(() => `${settings.value.itemLabel} Tracker`)
+const itemLabel = computed(() => settings.value.itemLabel)
 
 const toggleDark = () => {
   colorMode.preference = isDark.value ? 'light' : 'dark'
 }
 
-const { getApplications, createApplication, updateApplication, deleteApplication } = useApplications()
+const { getItems, createItem, updateItem, deleteItem } = useItems()
 const { createInfoItem, updateInfoItem } = useInfoItems()
 const { stages, loadStages } = useStages()
 
-const applications = ref<Application[]>([])
+const items = ref<Item[]>([])
 const pending = ref(true)
 const error = ref<Error | null>(null)
+const showSettings = ref(false)
 const showModal = ref(false)
-const selectedApplication = ref<Application | undefined>()
+const selectedItem = ref<Item | undefined>()
 const showDetailModal = ref(false)
-const selectedApplicationDetail = ref<Application | undefined>()
+const selectedItemDetail = ref<Item | undefined>()
 const showStagesSettings = ref(false)
 
 const showCommentModal = ref(false)
 const pendingTransition = ref<{
-  appId: number | string
+  itemId: number | string
   fromStage: string
   toStage: string
   eventItemId: number | string | null
 } | null>(null)
-/** Block detail modal for this app while transition+comment flow is in progress */
-const blockDetailForAppId = ref<number | string | null>(null)
+const blockDetailForItemId = ref<number | string | null>(null)
 
-// Delete Modal State
 const showDeleteModal = ref(false)
-const appToDelete = ref<Application | null>(null)
+const itemToDelete = ref<Item | null>(null)
 const deleteLoading = ref(false)
+const needsOnboarding = ref(false)
 
-const loadApplications = async (showLoading = true) => {
+const loadItems = async (showLoading = true) => {
   try {
     if (showLoading) pending.value = true
     error.value = null
-    const [fetchedApps] = await Promise.all([
-      getApplications(),
+    const [fetchedItems] = await Promise.all([
+      getItems(),
       loadStages()
     ])
-    applications.value = fetchedApps
+    items.value = fetchedItems
   } catch (e) {
     error.value = e as Error
   } finally {
@@ -192,58 +207,55 @@ const loadApplications = async (showLoading = true) => {
 }
 
 const openCreateModal = () => {
-  selectedApplication.value = undefined
+  selectedItem.value = undefined
   showModal.value = true
 }
 
-const openEditModal = (app: Application) => {
-  selectedApplication.value = app
+const openEditModal = (item: Item) => {
+  selectedItem.value = item
   showModal.value = true
 }
 
-const openDetailModal = (app: Application) => {
-  if (blockDetailForAppId.value === app.id) return
-  selectedApplicationDetail.value = app
+const openDetailModal = (item: Item) => {
+  if (blockDetailForItemId.value === item.id) return
+  selectedItemDetail.value = item
   showDetailModal.value = true
 }
 
-const openEditFromDetail = (app: Application) => {
-  selectedApplication.value = app
+const openEditFromDetail = (item: Item) => {
+  selectedItem.value = item
   showModal.value = true
 }
 
-const handleSubmit = async (data: ApplicationCreate) => {
+const handleSubmit = async (data: ItemCreate) => {
   try {
-    if (selectedApplication.value) {
-      // Optimistic update
-      const index = applications.value.findIndex(a => a.id === selectedApplication.value!.id)
+    if (selectedItem.value) {
+      const index = items.value.findIndex(i => i.id === selectedItem.value!.id)
       if (index !== -1) {
-        applications.value[index] = { ...applications.value[index], ...data }
+        items.value[index] = { ...items.value[index], ...data }
       }
-      await updateApplication(selectedApplication.value.id, data)
+      await updateItem(selectedItem.value.id, data)
     } else {
-      await createApplication(data)
+      await createItem(data)
     }
     showModal.value = false
-    await loadApplications(false) // Refresh in background
+    await loadItems(false)
     
-    // Record change for backup tracking
-    if (isLocalStorageMode) recordChange()
+    recordChange()
   } catch (e) {
-    console.error('Failed to save application:', e)
-    await loadApplications() // Revert to server state on error
+    console.error('Failed to save item:', e)
+    await loadItems()
   }
 }
 
 const handleUpdateStage = async (id: number | string, toStage: string, fromStage: string) => {
-  blockDetailForAppId.value = id
-  const index = applications.value.findIndex(a => a.id === id)
+  blockDetailForItemId.value = id
+  const index = items.value.findIndex(i => i.id === id)
   if (index !== -1) {
-    applications.value[index] = { ...applications.value[index], stage: toStage }
+    items.value[index] = { ...items.value[index], stage: toStage }
   }
   try {
-    await updateApplication(id, { stage: toStage })
-    // Auto-create transition event
+    await updateItem(id, { stage: toStage })
     const created = await createInfoItem(id, {
       event_type: 'transition',
       from_stage: fromStage,
@@ -253,109 +265,98 @@ const handleUpdateStage = async (id: number | string, toStage: string, fromStage
       tag: null,
     })
     pendingTransition.value = {
-      appId: id,
+      itemId: id,
       fromStage,
       toStage,
       eventItemId: created.id,
     }
     showCommentModal.value = true
     
-    // Record change for backup tracking
-    if (isLocalStorageMode) recordChange()
+    recordChange()
   } catch (e) {
-    blockDetailForAppId.value = null
+    blockDetailForItemId.value = null
     console.error('Failed to update stage:', e)
-    await loadApplications()
+    await loadItems()
   }
 }
 
 const handleCommentSave = async (comment: string) => {
   if (!pendingTransition.value?.eventItemId) return
-  const { appId, eventItemId } = pendingTransition.value
+  const { itemId, eventItemId } = pendingTransition.value
   try {
-    await updateInfoItem(appId, eventItemId, { content: comment })
-    const idx = applications.value.findIndex(a => a.id === appId)
+    await updateInfoItem(itemId, eventItemId, { content: comment })
+    const idx = items.value.findIndex(i => i.id === itemId)
     if (idx !== -1) {
-      applications.value[idx] = { ...applications.value[idx], last_event_preview: comment }
+      items.value[idx] = { ...items.value[idx], last_comment_preview: comment }
     }
   } finally {
     showCommentModal.value = false
     pendingTransition.value = null
-    blockDetailForAppId.value = null
+    blockDetailForItemId.value = null
   }
 }
 
 const handleCommentSkip = () => {
   showCommentModal.value = false
   pendingTransition.value = null
-  blockDetailForAppId.value = null
+  blockDetailForItemId.value = null
 }
 
 const handleDelete = (id: number | string) => {
-  const app = applications.value.find(a => a.id === id)
-  if (app) {
-    appToDelete.value = app
+  const item = items.value.find(i => i.id === id)
+  if (item) {
+    itemToDelete.value = item
     showDeleteModal.value = true
   }
 }
 
 const handleConfirmDelete = async () => {
-  if (!appToDelete.value) return
+  if (!itemToDelete.value) return
   
   try {
     deleteLoading.value = true
-    const id = appToDelete.value.id
+    const id = itemToDelete.value.id
     
-    // Optimistic update
-    applications.value = applications.value.filter(a => a.id !== id)
-    if (selectedApplicationDetail.value?.id === id) {
+    items.value = items.value.filter(i => i.id !== id)
+    if (selectedItemDetail.value?.id === id) {
       showDetailModal.value = false
     }
 
-    await deleteApplication(id)
+    await deleteItem(id)
     showDeleteModal.value = false
     
-    // Record change for backup tracking
-    if (isLocalStorageMode) recordChange()
+    recordChange()
   } catch (e) {
-    console.error('Failed to delete application:', e)
-    await loadApplications() // Revert on error
+    console.error('Failed to delete item:', e)
+    await loadItems()
   } finally {
     deleteLoading.value = false
-    appToDelete.value = null
+    itemToDelete.value = null
   }
 }
 
-// Quick export from header button
 const handleQuickExport = () => {
-  const KEYS = {
-    applications: 'app-tracker:applications',
-    stages: 'app-tracker:stages',
-    infoItems: 'app-tracker:info-items',
-  }
-
-  const data = {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    applications: JSON.parse(localStorage.getItem(KEYS.applications) || '[]'),
-    stages: JSON.parse(localStorage.getItem(KEYS.stages) || '[]'),
-    infoItems: JSON.parse(localStorage.getItem(KEYS.infoItems) || '[]'),
-  }
-
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const date = new Date().toISOString().split('T')[0]
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `app-tracker-export-${date}.json`
-  a.click()
-  URL.revokeObjectURL(url)
-
+  if (!activeWorkspace.value) return
+  exportWorkspace(activeWorkspace.value.id)
   recordBackup()
   toast.add({ title: 'Data exported successfully', color: 'green', icon: 'i-heroicons-check-circle' })
 }
 
+const handleOnboardingComplete = () => {
+  needsOnboarding.value = false
+  loadWorkspaces()
+  loadSettings()
+  loadItems()
+}
+
 onMounted(() => {
-  loadApplications()
+  loadWorkspaces()
+  if (workspaces.value.length === 0) {
+    needsOnboarding.value = true
+    pending.value = false
+    return
+  }
+  loadSettings()
+  loadItems()
 })
 </script>

@@ -30,10 +30,13 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      - name: Run tests
+        working-directory: ./frontend
+        run: npx vitest run
+
       - name: Generate static site
         working-directory: ./frontend
         env:
-          NUXT_PUBLIC_STORAGE_MODE: local
           NUXT_PUBLIC_BASE_URL: /trackboard/
         run: npx nuxt generate
 

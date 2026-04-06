@@ -131,7 +131,7 @@
         <span class="text-sm text-gray-400 dark:text-gray-500">{{ appTitle }}</span>
         <div class="flex items-center gap-4">
           <a
-            href="https://github.com/salvob41/app-tracker"
+            href="https://github.com/salvob41/trackboard"
             target="_blank"
             rel="noopener noreferrer"
             class="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center gap-1.5"

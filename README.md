@@ -134,7 +134,7 @@ The GitHub Actions workflow builds and deploys on every push to `main`:
 ```bash
 # Generate locally
 cd frontend
-NUXT_PUBLIC_BASE_URL=/app-tracker/ npx nuxt generate
+NUXT_PUBLIC_BASE_URL=/trackboard/ npx nuxt generate
 ```
 
 ## Testing

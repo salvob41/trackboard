@@ -34,7 +34,7 @@ jobs:
         working-directory: ./frontend
         env:
           NUXT_PUBLIC_STORAGE_MODE: local
-          NUXT_PUBLIC_BASE_URL: /app-tracker/
+          NUXT_PUBLIC_BASE_URL: /trackboard/
         run: npx nuxt generate
 
       - name: Add SPA routing fallback

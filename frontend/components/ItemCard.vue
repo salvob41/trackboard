@@ -63,7 +63,11 @@
           <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="notes-icon" />
           <p class="notes-text" v-html="linkify(item.last_comment_preview)"></p>
         </div>
-        <div v-if="!item.last_event_preview && !item.last_comment_preview" class="notes-empty">
+        <div v-if="!item.last_event_preview && !item.last_comment_preview && item.notes" class="notes">
+          <UIcon name="i-heroicons-document-text" class="notes-icon" />
+          <p class="notes-text" v-html="linkify(item.notes)"></p>
+        </div>
+        <div v-if="!item.last_event_preview && !item.last_comment_preview && !item.notes" class="notes-empty">
           <UIcon name="i-heroicons-clock" class="notes-icon" />
           <p class="notes-text">No activity yet</p>
         </div>

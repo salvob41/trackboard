@@ -1,7 +1,7 @@
 <template>
   <UModal 
     v-model="isOpen" 
-    :ui="{ width: 'sm:max-w-md' }"
+    :ui="{ width: 'sm:max-w-md lg:max-w-lg' }"
     @paste="handlePaste"
     @dragover.prevent="onDragOver"
     @dragleave="onDragLeave"
@@ -383,6 +383,12 @@ const closeModal = () => {
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+@media (max-width: 640px) {
+  :deep(.space-y-4 > *) {
+    margin-bottom: 0.75rem;
   }
 }
 </style>

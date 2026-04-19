@@ -276,8 +276,16 @@ const getAccentGradient = (stageKey: string) => {
   transition: opacity 0.2s;
 }
 
-.item-card:hover .action-btn {
-  opacity: 1;
+@media (hover: hover) {
+  .item-card:hover .action-btn {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 767px) {
+  .action-btn {
+    opacity: 1;
+  }
 }
 
 .card-body {

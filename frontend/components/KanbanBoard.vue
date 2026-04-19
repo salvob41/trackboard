@@ -228,11 +228,25 @@ const handleClick = (item: Item) => {
 @media (max-width: 768px) {
   .kanban-board {
     grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
     height: auto;
   }
   
+  .kanban-column {
+    min-height: 300px;
+  }
+  
   .column-content {
-    max-height: 400px;
+    max-height: 350px;
+  }
+
+  .column-header {
+    padding: 0.75rem;
+  }
+
+  .column-header h2 {
+    font-size: 1rem;
   }
 }
 </style>

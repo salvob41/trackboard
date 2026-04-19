@@ -6,19 +6,19 @@
 
     <header class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <div class="px-4 sm:px-6 lg:px-8 py-4">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-3">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
+          <div class="flex items-center gap-3 flex-wrap">
             <UIcon name="i-heroicons-briefcase" class="text-3xl text-primary" />
-            <h1 class="text-2xl font-bold">{{ appTitle }}</h1>
+            <h1 class="text-xl sm:text-2xl font-bold">{{ appTitle }}</h1>
             <WorkspaceSelector class="ml-2" />
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex flex-wrap items-center gap-2">
             <UButton 
               icon="i-heroicons-plus" 
               @click="openCreateModal"
-              size="lg"
+              size="md"
             >
-              New {{ itemLabel }}
+              <span class="hidden sm:inline">New {{ itemLabel }}</span>
             </UButton>
             <UTooltip text="Download Backup">
               <UButton
@@ -26,9 +26,7 @@
                 color="gray"
                 variant="ghost"
                 @click="handleQuickExport"
-              >
-                <span class="hidden lg:inline ml-1">Backup</span>
-              </UButton>
+              />
             </UTooltip>
             <UButton
               icon="i-heroicons-cog-6-tooth"
@@ -127,7 +125,7 @@
     </ClientOnly>
 
     <footer class="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 mt-auto">
-      <div class="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      <div class="px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
         <span class="text-sm text-gray-400 dark:text-gray-500">{{ appTitle }}</span>
         <div class="flex items-center gap-4">
           <a
@@ -137,7 +135,7 @@
             class="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center gap-1.5"
           >
             <UIcon name="i-simple-icons-github" class="text-base" />
-            GitHub
+            <span class="hidden sm:inline">Star on GitHub</span>
           </a>
         </div>
       </div>

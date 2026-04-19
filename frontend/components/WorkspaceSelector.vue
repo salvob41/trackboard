@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center gap-1.5">
+  <div class="flex items-center gap-1.5 flex-wrap">
     <button
       v-for="ws in workspaces"
       :key="ws.id"
